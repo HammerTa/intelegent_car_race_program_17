@@ -193,9 +193,9 @@ void LeftStartFind()
   {
     for(col = 5;col<COL - 55 && left.Col[0] == 254;col++)
     {
-      if(IMG_DATA[row][col]==BLACK && IMG_DATA[row][col+1]==BLACK)
+      if(IMG_DATA[row][col]==BLACK_IMG && IMG_DATA[row][col+1]==BLACK_IMG)
       {
-        if(IMG_DATA[row][col+2]==WHITE && IMG_DATA[row][col+3]==WHITE)
+        if(IMG_DATA[row][col+2]==WHITE_IMG && IMG_DATA[row][col+3]==WHITE_IMG)
         {
            left.Row[0]=row;
            left.Col[0]=col+1;
@@ -220,9 +220,9 @@ void RightStartFind()
   {
     for(col=COL - 5;col > 55 && right.Col[0] == 254;col--)
     {
-      if(IMG_DATA[row][col]==BLACK && IMG_DATA[row][col-1]==BLACK)
+      if(IMG_DATA[row][col]==BLACK_IMG && IMG_DATA[row][col-1]==BLACK_IMG)
       {
-        if(IMG_DATA[row][col-2]==WHITE && IMG_DATA[row][col-3]==WHITE)
+        if(IMG_DATA[row][col-2]==WHITE_IMG && IMG_DATA[row][col-3]==WHITE_IMG)
         {
         right.Row[0]=row;
         right.Col[0]=col-1;
@@ -261,9 +261,9 @@ void left_jump()
 		{
 			if(col < COL - 5 && col > -1)
 			{
-				if(IMG_DATA[row][col] == BLACK && IMG_DATA[row][col + 1] == BLACK)
+				if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col + 1] == BLACK_IMG)
 				{
-					if(IMG_DATA[row][col + 2] == WHITE && IMG_DATA[row][col + 3] == WHITE)
+					if(IMG_DATA[row][col + 2] == WHITE_IMG && IMG_DATA[row][col + 3] == WHITE_IMG)
 					{
 						left.Row[pin] = row;
 						left.Col[pin] = col + 1;
@@ -295,7 +295,7 @@ void left_jump()
 		{
 			row = row + rowcheack[i];
 			col = col + colcheack[i];
-			if(IMG_DATA[row][col] == BLACK)
+			if(IMG_DATA[row][col] == BLACK_IMG)
 			{
 				row_temp = row;
 				col_temp = col;
@@ -303,7 +303,7 @@ void left_jump()
 				{
 					row_temp = row_temp + rowcheack[j];
 					col_temp = col_temp + colcheack[j];
-					if(IMG_DATA[row_temp][col_temp] == WHITE)
+					if(IMG_DATA[row_temp][col_temp] == WHITE_IMG)
 					{
 						whitecounter++;
 					}
@@ -343,13 +343,13 @@ void right_jump()
 		{
 			if(col < COL + 1 && col > 5)
 			{
-				if(IMG_DATA[row][col] == BLACK && IMG_DATA[row][col - 1] == BLACK)
+				if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col - 1] == BLACK_IMG)
 				{
-					if(IMG_DATA[row][col - 2] == WHITE && IMG_DATA[row][col - 3] == WHITE)
+					if(IMG_DATA[row][col - 2] == WHITE_IMG && IMG_DATA[row][col - 3] == WHITE_IMG)
 					{
 						right.Row[pin] = row;
 						right.Col[pin] = col - 1;
-						IMG_DATA[row][col - 1] = BLUE;
+						IMG_DATA[row][col - 1] = BLUE_IMG;
 						find = 1;
 						break;
 					}
@@ -377,7 +377,7 @@ void right_jump()
 		{
 			row = row + rowcheack[i];
 			col = col + colcheack[i];
-			if(IMG_DATA[row][col] == BLACK)
+			if(IMG_DATA[row][col] == BLACK_IMG)
 			{
 				row_temp = row;
 				col_temp = col;
@@ -385,7 +385,7 @@ void right_jump()
 				{
 					row_temp = row_temp + rowcheack[j];
 					col_temp = col_temp + colcheack[j];
-					if(IMG_DATA[row_temp][col_temp] == WHITE)
+					if(IMG_DATA[row_temp][col_temp] == WHITE_IMG)
 					{
 						whitecounter++;
 					}
@@ -460,13 +460,13 @@ void fixpoint()//左右边线起始点的修正
 		{
 			left.Col[0]=254;
 			left.Row[0]=254;
-                        left_flag=0;
+            left_flag=0;
 		}
 		else if(left.Row[0] > right.Row[0])
 		{
 			right.Col[0]=254;
 			right.Row[0]=254;
-                        right_flag=0;
+            right_flag=0;
 		}
 	}
 }
@@ -729,7 +729,7 @@ void protect()
   sum=0;
   for(i=0;i<160;i++)
   {
-    if(IMG_DATA[115][i]==BLACK)
+    if(IMG_DATA[115][i]==BLACK_IMG)
       sum++;
   }
   SUM=sum;

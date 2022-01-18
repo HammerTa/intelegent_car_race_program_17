@@ -43,7 +43,12 @@
 #define S3010_Left     800  //820
 #define S3010_Right    1130 //1130
 //-----±àÂëÆ÷
-
+#define encoder_GPT_l     GPT12_T4
+#define encoder_EUD_l     GPT12_T4EUDA_P00_9  //DIR
+#define encoder_IN_l      GPT12_T4INA_P02_8   //LSB
+#define encoder_GPT_r     GPT12_T2
+#define encoder_EUD_r     GPT12_T2EUDB_P33_6  //DIR
+#define encoder_IN_r      GPT12_T2INB_P33_7   //LSB
 //-----ÍÓÂÝÒÇ
 
 //-----·äÃùÆ÷
