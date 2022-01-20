@@ -29,7 +29,10 @@
 
 //-----管脚定义
 //-----键盘
-
+#define key1 P22_0
+#define key2 P22_1
+#define key3 P22_2
+#define key4 P22_3
 //-----电机
 #define motor_l_0       ATOM0_CH0_P21_2//左  +
 #define motor_l_1       ATOM0_CH1_P21_3//左  -
@@ -52,6 +55,9 @@
 //-----陀螺仪
 
 //-----蜂鸣器
+
+//-----蓝牙
+
 
 #include "SEEKFREE_PRINTF.h"
 

@@ -78,7 +78,7 @@
 
 
 //定义写字笔的颜色
-#define TFT_PENCOLOR    RED
+#define TFT_PENCOLOR    BLACK
 
 //定义背景颜色
 #define TFT_BGCOLOR	    WHITE
@@ -90,7 +90,7 @@
 //1 竖屏模式  旋转180
 //2 横屏模式
 //3 横屏模式  旋转180
-#define TFT_DISPLAY_DIR 3
+#define TFT_DISPLAY_DIR 0
 
 #if (0==TFT_DISPLAY_DIR || 1==TFT_DISPLAY_DIR)
 #define	TFT_X_MAX	128	//液晶X方宽度
