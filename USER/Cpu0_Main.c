@@ -35,7 +35,8 @@ int core0_main(void)
 	get_clk();//获取时钟频率  务必保留
 	disableInterrupts();
 	//用户在此处调用各种初始化函数等
-	inti_all();
+	inti_all();//外设初始化
+	PIT_init();//中断初始化
     //等待所有核心初始化完毕
 	IfxCpu_emitEvent(&g_cpuSyncEvent);
 	IfxCpu_waitEvent(&g_cpuSyncEvent, 0xFFFF);
@@ -47,7 +48,7 @@ int core0_main(void)
 	while (TRUE)
 	{
 		//用户在此处编写任务代码
-	    Img_Deal();
+
 	}
 }
 

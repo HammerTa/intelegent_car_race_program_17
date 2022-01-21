@@ -16,5 +16,6 @@ void Speed_Get(void);
 void motor_DiffSpeed(void);
 void motor_pid(void);
 void pwm_out(void);
+void Control(void);
 
 #endif /* CODE_MOTOR_H_ */
