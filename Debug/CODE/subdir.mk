@@ -5,24 +5,36 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../CODE/IMG_DEAL.c \
+../CODE/Key.c \
+../CODE/LCD_drive.c \
+../CODE/VCAN_computer.c \
 ../CODE/ZZK_Threshold.c \
 ../CODE/inti.c \
 ../CODE/motor.c 
 
 OBJS += \
 ./CODE/IMG_DEAL.o \
+./CODE/Key.o \
+./CODE/LCD_drive.o \
+./CODE/VCAN_computer.o \
 ./CODE/ZZK_Threshold.o \
 ./CODE/inti.o \
 ./CODE/motor.o 
 
 COMPILED_SRCS += \
 ./CODE/IMG_DEAL.src \
+./CODE/Key.src \
+./CODE/LCD_drive.src \
+./CODE/VCAN_computer.src \
 ./CODE/ZZK_Threshold.src \
 ./CODE/inti.src \
 ./CODE/motor.src 
 
 C_DEPS += \
 ./CODE/IMG_DEAL.d \
+./CODE/Key.d \
+./CODE/LCD_drive.d \
+./CODE/VCAN_computer.d \
 ./CODE/ZZK_Threshold.d \
 ./CODE/inti.d \
 ./CODE/motor.d 

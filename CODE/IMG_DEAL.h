@@ -3,8 +3,6 @@
 #include "common.h"
 #include "ZZK_Threshold.h"
 
-#define COL 160
-#define ROW 120
 
 
 //----------------函数定义区--------------
@@ -36,6 +34,10 @@ extern int max;
 extern int min;
 extern int line[120];
 extern int weight[240];
+extern int wild1;
+extern int wild10;
 
 extern unsigned char stop;
+extern unsigned char deal_flag;
+extern unsigned char IMG_DATA[ROW][COL];
 #endif 

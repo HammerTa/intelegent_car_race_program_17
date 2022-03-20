@@ -29,22 +29,22 @@
 
 //-----管脚定义
 //-----键盘
-#define key1 P22_0
-#define key2 P22_1
-#define key3 P22_2
-#define key4 P22_3
+#define KEY_1 P22_0
+#define KEY_2 P22_1
+#define KEY_3 P22_2
+#define KEY_4 P22_3
 //-----电机
-#define motor_l_0       ATOM0_CH0_P21_2//左  +
-#define motor_l_1       ATOM0_CH1_P21_3//左  -
-#define motor_r_0       ATOM0_CH2_P21_4//右  +
-#define motor_r_1       ATOM0_CH3_P21_5//右  -
+#define motor_l_EN       P02_4//左  +
+#define motor_l_PN       ATOM0_CH7_P02_7//左
+#define motor_r_EN       P02_6//右  +
+#define motor_r_PN       ATOM0_CH5_P02_5//右
 #define motor_frequency     13000
 //-----舵机
 #define steering_gear     ATOM1_CH1_P33_9
 #define steering_frequency 50
-#define S3010_Middle   965  //965
-#define S3010_Left     800  //820
-#define S3010_Right    1130 //1130
+#define S3010_Middle   595  //舵机中值
+#define S3010_Left     665  //左打死
+#define S3010_Right    525 //右打死
 //-----编码器
 #define encoder_GPT_l     GPT12_T4
 #define encoder_EUD_l     GPT12_T4EUDA_P00_9  //DIR
@@ -57,7 +57,20 @@
 //-----蜂鸣器
 
 //-----蓝牙
-
+#define uart_blue UART_2
+#define VCAN_PORT UART_2
+#define i2c_delay     2        //两次读取或写入的时间间隔,单位MS
+#define DATE_LEN 89//定义数据长度
+#define cursor_min    0
+#define cursor_max    6
+#define menu_min      0
+#define menu_max      7
+#define AD 3
+#define Len 10
+#define menu_N        5    //最大位数
+#define condition_input  (jianzhi==1||jianzhi==2||jianzhi==3||jianzhi==5||jianzhi==6||jianzhi==7||jianzhi==9||jianzhi==10||jianzhi==11||jianzhi==14)  //封装输入时的判定依据（这样写可简化函数）
+#define cursor_select 70      //光标显示的位置
+#define cursor_set    90      //输入数字时光标的位置
 
 #include "SEEKFREE_PRINTF.h"
 
@@ -108,5 +121,8 @@
 #include "IMG_DEAL.h"
 #include "inti.h"
 #include "motor.h"
+#include "Key.h"
+#include "VCAN_computer.h"
+#include "LCD_drive.h"
 #endif
 

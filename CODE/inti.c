@@ -25,16 +25,20 @@ void inti_all()
 {
     systick_delay_ms(STM0,1000);//等待设备上电
     lcd_init();         //液晶初始化
-    //mt9v03x_init();     //摄像头初始化
-    //lcd_showstr(0,0,"Cm init done");
+    mt9v03x_init();     //摄像头初始化
+    lcd_showstr(0,0,"Cm init done");
     steering_init();    //舵机初始化
-    lcd_showstr(0,0,"St init done");
+    lcd_showstr(0,1,"St init done");
     motor_init();       //电机初始化
-    lcd_showstr(0,1,"Mt init done");
+    lcd_showstr(0,2,"Mt init done");
     Count_init();       //编码器初始化
-    lcd_showstr(0,2,"Ct init done");
+    lcd_showstr(0,3,"Ct init done");
+    uart_init(UART_2, 115200, UART2_TX_P10_5, UART2_RX_P10_6);
+    lcd_showstr(0,4,"UA init done");
     systick_delay_ms(STM0,1000);
-    lcd_showstr(0,3,"Ready to go");
+    lcd_showstr(0,5,"Ready to go");
+    systick_delay_ms(STM0,1000);
+    lcd_clear(WHITE);
 }
 
 void PIT_init()

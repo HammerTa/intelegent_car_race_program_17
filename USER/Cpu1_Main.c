@@ -40,10 +40,12 @@ void core1_main(void)
     while (TRUE)
     {
 		//用户在此处编写任务代码
-//        if(mt9v03x_finish_flag==0)
-//        {
-//            Img_Deal();
-//        }
+        if(mt9v03x_finish_flag==1)
+        {
+            Img_Deal();
+            mt9v03x_finish_flag=0;
+        }
+
     }
 }
 

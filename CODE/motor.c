@@ -32,20 +32,24 @@ int left_pwm_out=0,right_pwm_out=0;
 int ui_lim=0;
 int error=0;
 int error0=0;
-int lim_pwm=4000;
+int lim_pwm=9000;
 float CS_lim=0.95;
+float P_rate=0.1,D_rate=0;
+int e_lim=50;
 int ERROR[5]={0,0,0,0,0};
 static int COUNT=0;
-
+uint8 pwm0_flag=0;
 //================需要修改的================
-float duoji_kp=2,duoji_kd=2.7;    //舵机，用于打角转弯
+float duoji_kp=0,duoji_kd=0;    //舵机，用于打角转弯
+float duoji_kp0=1.8,duoji_kd0=3.3;
+float duoji_kp1=4.8,duoji_kd1=1.4;
+float chasu=0,chasu_k=0.0;      //差速，用于转弯，低速时不需要
 
-float chasu=0,chasu_k=0.03;      //差速，用于转弯，低速时不需要
-
-int left_motor_kp=20,left_motor_ki=5,left_motor_kd=5;    //电机pid用于稳定控制轮子转速
-int right_motor_kp=20,right_motor_ki=8,right_motor_kd=5;
-int setspeed=40;     //别给太大，一开始可以给20
-
+int left_motor_kp=75,left_motor_ki=0,left_motor_kd=0;    //电机pid用于稳定控制轮子转速
+int right_motor_kp=75,right_motor_ki=0,right_motor_kd=0;
+float l_i=0,r_i=0;
+int setspeed=30;     //别给太大，一开始可以给20
+int time=0;
 
 ///***************************************************************
 //* 函数名称： steering_inti
@@ -66,10 +70,10 @@ void steering_init()
 //***************************************************************
 void motor_init()
 {
-    gtm_pwm_init(motor_l_0,motor_frequency,0);
-    gtm_pwm_init(motor_l_1,motor_frequency,0);
-    gtm_pwm_init(motor_r_0,motor_frequency,0);
-    gtm_pwm_init(motor_r_1,motor_frequency,0);
+    gpio_init(motor_l_EN,GPO,1,PUSHPULL);
+    gpio_init(motor_r_EN,GPO,1,PUSHPULL);
+    gtm_pwm_init(motor_l_PN,motor_frequency,0);
+    gtm_pwm_init(motor_r_PN,motor_frequency,0);
 }
 
 ///***************************************************************
@@ -96,7 +100,24 @@ void Control()
     angle_deal();
     motor_DiffSpeed();
     motor_pid();
+    if(stop==1)
+    {
+        time++;
+        if(time==100) pwm0_flag=1;
+    }
     pwm_out();
+}
+
+///***************************************************************
+//* 函数名称： PDChange
+//* 功能说明： 舵机打角输出
+//* 函数返回： 无
+//* 备 注：
+//***************************************************************
+void PDChange(int er)
+{
+    duoji_kp=duoji_kp0;//+1.0*abs(er)*(duoji_kp1-duoji_kp0)/e_lim;
+    duoji_kd=duoji_kd0;
 }
 
 ///***************************************************************
@@ -125,33 +146,40 @@ void angle_deal()
         weight_sum += weight[i];//此处可以进行算法复杂度优化
       }
     }
-    if(weight_sum > 0)
-      error /= -weight_sum;
-    else
-      error = error0;
+    error /= weight_sum;
   }
   else
     error = error0;
-  //================================
-  ERROR[COUNT]=(int)(error*0.2);
-  COUNT++;
-  error=0;
-  for(j=0;j<5;j++)
+  if(error<-e_lim)
   {
-    error+=ERROR[j];
+      error=-e_lim;
   }
-  if(COUNT>=5)
+  if(error>e_lim)
   {
-    COUNT=0;
-  }//滤波
+      error=e_lim;
+  }
+  //================================
+//  ERROR[COUNT]=(int)(error*0.2);
+//  COUNT++;
+//  error=0;
+//  for(j=0;j<5;j++)
+//  {
+//    error+=ERROR[j];
+//  }
+//  if(COUNT>=5)
+//  {
+//    COUNT=0;
+//  }//滤波
   //======打角pd控制================
+  PDChange(error);
   angle=(int)(duoji_kp*error+duoji_kd*(error-error0));
   angle_pwm_out= S3010_Middle-angle;
-  if(angle_pwm_out>S3010_Right)
+  if(stop==1) angle_pwm_out=S3010_Middle;
+  if(angle_pwm_out<S3010_Right)
   {
     angle_pwm_out=S3010_Right;
   }
-  if(angle_pwm_out<S3010_Left)
+  if(angle_pwm_out>S3010_Left)
   {
     angle_pwm_out=S3010_Left;
   }
@@ -166,7 +194,7 @@ void angle_deal()
 //***************************************************************
 void Speed_Get()
 {
-    speed_l=gpt12_get(encoder_GPT_l);
+    speed_l=-gpt12_get(encoder_GPT_l);
     speed_r=gpt12_get(encoder_GPT_r);
     //获得读数
     gpt12_clear(encoder_GPT_l);
@@ -182,10 +210,10 @@ void Speed_Get()
 //***************************************************************
 void motor_DiffSpeed()
 {
-  if(stop==1)
-  {
-    setspeed=0;
-  }
+    if(stop==1)
+    {
+        setspeed=0;
+    }
   chasu=(chasu_k*(float)fabs(error))/(2.0+chasu_k*(float)fabs(error))*(float)setspeed;//差速计算公式
   if(error==0)
   {
@@ -223,7 +251,7 @@ void motor_pid()
 {
   //左电机计算
   speed_error_L0=setspeed_L-speed_l;
-  left_pwm=(int)((speed_error_L0-speed_error_L1)*left_motor_kp+speed_error_L0*left_motor_ki+(speed_error_L0-2*speed_error_L1+speed_error_L2)*left_motor_kd);
+  left_pwm=(int)((speed_error_L0-speed_error_L1)*left_motor_kp+speed_error_L0*l_i+(speed_error_L0-2*speed_error_L1+speed_error_L2)*left_motor_kd);
   left_pwm_out+=left_pwm;
   speed_error_L2=speed_error_L1;
   speed_error_L1=speed_error_L0;
@@ -237,7 +265,7 @@ void motor_pid()
 
   //右电机计算
   speed_error_R0=setspeed_R-speed_r;
-  right_pwm=(int)((speed_error_R0-speed_error_R1)*right_motor_kp+speed_error_R0*right_motor_ki+(speed_error_R0-2*speed_error_R1+speed_error_R2)*right_motor_kd);
+  right_pwm=(int)((speed_error_R0-speed_error_R1)*right_motor_kp+speed_error_R0*r_i+(speed_error_R0-2*speed_error_R1+speed_error_R2)*right_motor_kd);
   right_pwm_out+=right_pwm;
   speed_error_R2=speed_error_R1;
   speed_error_R1=speed_error_R0;
@@ -259,7 +287,6 @@ void motor_pid()
   {
     left_pwm_out=-lim_pwm;
   }
-
    if(right_pwm_out>lim_pwm)
   {
     right_pwm_out=lim_pwm;
@@ -278,26 +305,34 @@ void motor_pid()
 //***************************************************************
 void pwm_out()
 {
-    //left_pwm_out=3000;
-    //right_pwm_out=3000;//如果注释取消 则为开环
+//    left_pwm_out=2500;
+//    right_pwm_out=2500;//如果注释取消 则为开环
+    if(pwm0_flag==1)
+    {
+        left_pwm_out=0;
+        right_pwm_out=0;
+    }
     if(left_pwm_out>=0)
     {
-        pwm_duty(motor_l_0,left_pwm_out);
-        pwm_duty(motor_l_1,0);
+        gpio_set(motor_l_EN,1);
+        pwm_duty(motor_l_PN,left_pwm_out);
     }
     else
     {
-        pwm_duty(motor_l_0,0);
-        pwm_duty(motor_l_1,left_pwm_out);
+        gpio_set(motor_l_EN,0);
+        pwm_duty(motor_l_PN,-left_pwm_out);
     }
     if(right_pwm_out>=0)
     {
-        pwm_duty(motor_l_0,right_pwm_out);
-        pwm_duty(motor_l_1,0);
+        gpio_set(motor_r_EN,1);
+        pwm_duty(motor_r_PN,right_pwm_out);
     }
     else
     {
-        pwm_duty(motor_l_0,0);
-        pwm_duty(motor_l_1,right_pwm_out);
+        gpio_set(motor_r_EN,0);
+        pwm_duty(motor_r_PN,-right_pwm_out);
     }
 }
+
+
+

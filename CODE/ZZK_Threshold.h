@@ -10,7 +10,7 @@
 #define LQOSTU_QIANGNUM      2000   //强光总点数的阈值
 //--------九乾添加的--------
 #define ROW 120
-#define COL 160
+#define COL 188
 //--------end---------
 extern uint8 cam_static;//当赛道出界，或者计算的灰度阈值异常时使用
 extern uint8 cam_thr_mid,cam_thr_max,cam_thr_min;

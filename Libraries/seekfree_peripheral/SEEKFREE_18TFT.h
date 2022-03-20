@@ -90,7 +90,7 @@
 //1 竖屏模式  旋转180
 //2 横屏模式
 //3 横屏模式  旋转180
-#define TFT_DISPLAY_DIR 0
+#define TFT_DISPLAY_DIR 3
 
 #if (0==TFT_DISPLAY_DIR || 1==TFT_DISPLAY_DIR)
 #define	TFT_X_MAX	128	//液晶X方宽度

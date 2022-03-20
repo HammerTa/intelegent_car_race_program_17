@@ -1,11 +1,14 @@
-#include "IMG_DEAL.h"
-#define  IMG_DATA    mt9v03x_image
+#include "headfile.h"
+//#define  IMG_DATA    mt9v03x_image
  
 //----------------变量定义区--------------
  
 int  dj_end;
 unsigned char stop=0;//停车标志位，置1表示停车
+unsigned char go=0;//直行标志位，1表示直行
+unsigned char deal_flag=0;//处理标志位
 //int i = 0,j = 0;
+
 //********************************************
 
 //巡线
@@ -21,6 +24,7 @@ int middleline[240];
 int middleline_l[240];
 int middleline_r[240];
 int SUM=0;
+int wild1,wild10;
 struct DIV 
 { 
 	int Row[240]; 
@@ -53,8 +57,11 @@ int max = 0;
 int min  = 0;
 int line[120] = {0};
 int Threshold;
-
-
+unsigned char IMG_DATA[ROW][COL];
+int mid_row_R[240];
+int mid_row_L[240];
+int mid_row[240];
+int mid_flag=0;
 //*********************************************
 
 //**********************************************
@@ -107,19 +114,13 @@ int weight[240]={
 
 //--------------------------
 int TrackWild[120]={
-1,  2,  4,  6,  8, 10, 12, 13, 15, 17, 
-19,21, 22, 24, 26, 28, 30, 32, 33,35,
-37, 39, 41, 42, 44, 46, 48, 50, 
-52, 53, 55, 57, 59, 61, 62, 64, 66,
-68, 70, 72, 73, 75, 77, 79, 81, 82, 
-84, 86, 88, 90, 92, 93, 95, 97, 99,
-101,103, 104,106,108,110,112,113,115,  
-117,119,121,123,124,126,128,130,132, 
-133,135,137,139,141,143,144,146,148,
-150,152,153,155,157,159,161,163,164,
-166,168,170,172, 173,175,177,179,181,  
-183,184,186,188,190,192,194,195,197,  
-199,201,203,204,206,208,210,212,214,215,217};
+        29,30,31,32,33,34,35,36,37,38,40,41,42,43,44,45,46,47,48,
+        49,51,52,53,54,55,56,57,58,59,60,62,63,64,65,66,67,68,69,
+        70,72,73,74,75,76,77,78,79,80,81,83,84,85,86,87,88,89,90,
+        91,92,94,95,96,97,98,99,100,101,102,103,105,106,107,108,109,110,111,
+        112,113,114,116,117,118,119,120,121,122,123,124,125,127,128,129,130,131,132,
+        133,134,135,136,138,139,140,141,142,143,144,145,146,147,149,150,151,152,153,
+        154,155,156,157,158,160};
 
 
 //***************************************************************
@@ -144,7 +145,14 @@ void Deal_Init()
     right_start = 254;left_start = 254;
     right_end = 120;left_end = 120;
     middle_start = 0;middle_end = 0;
-    Threshold=GetOSTU(mt9v03x_image);
+    for(i=0;i<ROW;i++)
+    {
+        for(j=0;j<COL;j++)
+        {
+            IMG_DATA[i][j]=mt9v03x_image[i][j];
+        }
+    }
+    Threshold=GetOSTU(IMG_DATA);
     for(i=0;i<ROW;i++)
     {
         for(j=0;j<COL;j++)
@@ -173,8 +181,11 @@ void Deal_Init()
                 RacingLine.Row[pin]=254;
                 RacingLine.Col[pin]=254;
                 middleline[pin]=254;
-                middleline_l[pin]=0;
-                middleline_r[pin]=160;
+                middleline_l[pin]=254;
+                middleline_r[pin]=254;
+                mid_row_R[pin]=254;
+                mid_row_L[pin]=254;
+                mid_row[pin]=254;
 	}  
     	left_apex.Mark=254;
 	right_apex.Mark=254;
@@ -544,6 +555,138 @@ void Right_Apex()
 //***************************************************************
 void Racing_Line()
 {
+//    int pin,i;
+//    int row,col;
+//    int flag;
+//    int mark;
+//    int l_flag,r_flag;
+//    l_flag=0;
+//    r_flag=0;
+//    i=0;
+//    if(left_flag==0&&right_flag==0)
+//    {
+//      return;
+//    }
+//    if(left_flag==0)
+//    {
+//        mark=right_apex.Mark+(115-right.Row[0]);
+//        row=right.Row[0];
+//        for(pin=0;pin<mark;pin++)
+//        {
+//            flag=119-pin;
+//            if(flag>right.Row[0])
+//            {
+//              middleline[pin]=right.Col[0]-TrackWild[row]/2;
+//              col=middleline[pin];
+//              mid_row[pin]=flag;
+//            }
+//            else
+//            {
+//
+//              row=right.Row[i];
+//              col=right.Col[i]-TrackWild[row]/2;
+//              middleline[pin]=col;
+//              mid_row[pin]=row;
+//              i++;
+//            }
+//        }
+//        mid_flag++;
+//        return;
+//    }
+//    else if(right_flag==0)
+//    {
+//      mark=left_apex.Mark+(115-left.Row[0]);
+//      row=left.Row[0];
+//      for(pin=0;pin<mark;pin++)
+//        {
+//          flag=119-pin;
+//          if(flag>left.Row[0])
+//          {
+//            middleline[pin]=left.Col[0]+TrackWild[row]/2;
+//              col=middleline[pin];
+//              mid_row[pin]=flag;
+//          }
+//          else
+//          {
+//            row=left.Row[i];
+//            col=left.Col[i]+TrackWild[row]/2;
+//            middleline[pin]=col;
+//            mid_row[pin]=row;
+//            i++;
+//          }
+//        }
+//      mid_flag++;
+//        return;
+//    }//上为丢线，以下为源程序改进，原版本于ADS查
+//    else
+//    {
+//        //以左边线找中线
+//        mark=left_apex.Mark+(115-left.Row[0]);
+//        row=left.Row[0];
+//        for(pin=0;pin<mark;pin++)
+//        {
+//            flag=119-pin;
+//            if(flag>left.Row[0])
+//            {
+//                middleline_l[pin]=left.Col[0]+TrackWild[row]/2;
+//                col=middleline_l[pin];
+//                mid_row_L[pin]=flag;
+//           }
+//            else
+//            {
+//                row=left.Row[i];
+//                 col=left.Col[i]+TrackWild[row]/2;
+//                middleline_l[pin]=col;
+//                mid_row_L[pin]=row;
+//                i++;
+//             }
+//        }
+//        //以右边线找中线
+//        i=0;
+//        mark=right_apex.Mark+(115-right.Row[0]);
+//        row=right.Row[0];
+//        for(pin=0;pin<mark;pin++)
+//        {
+//          flag=119-pin;
+//          if(flag>right.Row[0])
+//          {
+//            middleline_r[pin]=right.Col[0]-TrackWild[row]/2;
+//              col=middleline_r[pin];
+//              mid_row_R[pin]=flag;
+//          }
+//          else
+//          {
+//            row=right.Row[i];
+//            col=right.Col[i]-TrackWild[row]/2;
+//            middleline_r[pin]=col;
+//            mid_row_R[pin]=row;
+//            i++;
+//          }
+//          r_flag++;
+//        }
+//    }
+//    if(l_flag<r_flag)
+//    {
+//        mid_flag=r_flag;
+//        for(i=0;i<r_flag;i++)
+//        {
+//            mid_row[i]=mid_row_R[i];
+//            if(i<l_flag) middleline[i]=(middleline_r[i]+middleline_l[i])/2;
+//            else middleline[i]=middleline_r[i];
+//        }
+//    }
+//    else
+//    {
+//        mid_flag=l_flag;
+//        for(i=0;i<l_flag;i++)
+//        {
+//            mid_row[i]=mid_row_L[i];
+//            if(i<r_flag) middleline[i]=(middleline_r[i]+middleline_l[i])/2;
+//            else middleline[i]=middleline_l[i];
+//        }
+//    }
+
+
         int pin,i;
         int row,col;
         int flag;
@@ -617,7 +760,7 @@ void Racing_Line()
             }
             return;
         }
-        if(left_apex.Mark>right_apex.Mark)
+        if(left_apex.Mark>=right_apex.Mark)
         {
             mark=left_apex.Mark+(115-left.Row[0]);
             row=left.Row[0];
@@ -634,7 +777,7 @@ void Racing_Line()
               {
                 row=left.Row[i];
                 col=left.Col[i]+TrackWild[row]/2;
-                middleline[pin]=col; 
+                middleline[pin]=col;
                 i++;
                 if(row>5&&row<ROW-5)
                 {
@@ -665,7 +808,7 @@ void Racing_Line()
               {
                 row=right.Row[i];
                 col=right.Col[i]-TrackWild[row]/2;
-                middleline[pin]=col; 
+                middleline[pin]=col;
                 i++;
                 if(row>5&&row<ROW-5)
                 {
@@ -681,41 +824,6 @@ void Racing_Line()
         }
 }
 
-//***************************************************************
-//* 函数名称： void data_collect_display()
-//* 功能说明： 将摄像头采集到的图像显示到液晶上
-//* 函数返回： 无
-//* 备 注： oled实际显示像素128*64  图像大小COL*ROW 
-//  液晶函数尚未移植，不可用
-//***************************************************************
-void Data_collect_display(void)
-{
-    uint8 x,y,i;
-    uint8 p[128];
-    uint16 z=0;
-    for(y=0;y<=7;y++)
-    {
-//        OLED_Set_Pos(0,y);
-        for(x=0;x<=127;x++)
-        {
-            p[x]=0;
-            
-            for(i=8;i>0;i--)
-            {
-                p[x]=(p[x]<<1)&0xffu;
-                if(IMG_DATA[(i-1+8*y)*(120-1)/63][z*(160-1)/127]==255)
-                { 
-                  
-                    p[x]|=0x01u;
-                }
-            } 
-            z++;
-
-        }    
-        z=0;
-    }  
-}
-
  //***************************************************************
 //* 函数名称： void protect()
 //* 功能说明： 车如果跑出赛道，停车
@@ -727,13 +835,13 @@ void protect()
   unsigned char i;
   unsigned char sum;
   sum=0;
-  for(i=0;i<160;i++)
+  for(i=0;i<188;i++)
   {
     if(IMG_DATA[115][i]==BLACK_IMG)
       sum++;
   }
   SUM=sum;
-  if(sum==118)
+  if(SUM>=170)
     stop=1;
   return;
 }
@@ -783,6 +891,42 @@ void Garage_Deal()
 {
 
 }
+
+void Track()
+{
+    int row1,col1;
+    int row2,col2;
+    int row3,col3;
+    int row4,col4;
+    row1=left.Row[0];
+    col1=left.Col[0];
+    row2=right.Row[0];
+    col2=right.Col[0];
+    row3=left.Row[10];
+    col3=left.Col[10];
+    row4=right.Row[10];
+    col4=right.Col[10];
+    lcd_showint32(0,0,row1,3);
+    lcd_showint32(0,1,col1,3);
+    lcd_showint32(0,2,row2,3);
+    lcd_showint32(0,3,col2,3);
+    lcd_showint32(0,4,row3,3);
+    lcd_showint32(0,5,col3,3);
+    lcd_showint32(0,6,row4,3);
+    lcd_showint32(0,7,col4,3);
+}
+
+//***************************************************************
+//* 函数名称： FPS
+//* 功能说明： 实际帧数计算
+//* 函数返回：
+//* 备 注：
+//***************************************************************
+//void FPS()
+//{
+//
+//}
+
 //***************************************************************
 //* 函数名称： Img_Deal
 //* 功能说明： 图像处理主函数
@@ -793,7 +937,8 @@ void Img_Deal()
 { 
     Deal_Init();
     InitData();
-    //==================以下函数需要自己改写=====================
+    deal_flag=1;
+    //seekfree_sendimg_03x(UART_2,IMG_DATA,188,120);//传输原始图像
     protect();
 	LeftStartFind() ;
 	RightStartFind();
@@ -803,9 +948,8 @@ void Img_Deal()
     Left_Apex();
     Right_Apex();
 	Racing_Line();
-    //wild();
-    //赛道宽度检测在非必要时必须关闭
- 
-  //Data_collect_display();     //液晶显示黑白图像，车子跑起来的时候关掉（失效）
-
+	//seekfree_sendimg_03x(UART_2,IMG_DATA,188,120);//传输处理后图像
+	//Track();
+	//lcd_displayimage032_zoom(IMG_DATA,188,120,160,128);//图像显示
+	deal_flag=0;
 }
