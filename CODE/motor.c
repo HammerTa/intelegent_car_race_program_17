@@ -37,7 +37,7 @@ float CS_lim=0.95;
 float P_rate=0.1,D_rate=0;
 int e_lim=50;
 int ERROR[5]={0,0,0,0,0};
-static int COUNT=0;
+//static int COUNT=0;
 uint8 pwm0_flag=0;
 //================需要修改的================
 float duoji_kp=0,duoji_kd=0;    //舵机，用于打角转弯
@@ -47,10 +47,10 @@ float chasu=0,chasu_k=0.0;      //差速，用于转弯，低速时不需要
 
 int left_motor_kp=75,left_motor_ki=0,left_motor_kd=0;    //电机pid用于稳定控制轮子转速
 int right_motor_kp=75,right_motor_ki=0,right_motor_kd=0;
-float l_i=0,r_i=0;
-int setspeed=30;     //别给太大，一开始可以给20
+float l_i=0.1,r_i=0.1;
+int setspeed=0;     //别给太大，一开始可以给20
 int time=0;
-
+int Mid_row;
 ///***************************************************************
 //* 函数名称： steering_inti
 //* 功能说明： 舵机初始化
@@ -103,7 +103,11 @@ void Control()
     if(stop==1)
     {
         time++;
-        if(time==100) pwm0_flag=1;
+        if(time>=100)
+        {
+            pwm0_flag=1;
+            time=0;
+        }
     }
     pwm_out();
 }
@@ -142,7 +146,8 @@ void angle_deal()
     {
       if(middleline[i]!=254)
       {
-        error += weight[i]*(middleline[i] - COL/2);
+        Mid_row=120-mid_row[i];
+        error += weight[Mid_row]*(middleline[i] - COL/2);
         weight_sum += weight[i];//此处可以进行算法复杂度优化
       }
     }

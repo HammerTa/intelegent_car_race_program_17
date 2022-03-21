@@ -149,7 +149,6 @@ void data_change(int key_input)
                 case 3:
                     if(point_flag==1)
                     {
-                        stop=0;
                         speed_data[point_flag-1]+=1;
                     }
                     else
@@ -179,11 +178,18 @@ void data_change(int key_input)
                         speed_data[point_flag-1]-=0.01;
                     break;
                 case 4:
+                    changing();
+                    drive_data_get();
+                    lcd_showstr(0,1,"GO!");
                     break;
             }
             key_value=0;
             break;
     }
+}
+
+void changing()
+{
     duoji_kp0=gear_data[0];
     duoji_kd0=gear_data[1];
     duoji_kp1=gear_data[2];
@@ -196,11 +202,21 @@ void data_change(int key_input)
     right_motor_kd=R_motor_data[2];
     setspeed=(int)speed_data[0];
     chasu_k=speed_data[1];
+    pwm0_flag=0;
+    stop=0;
+    speed_error_L0=0;
+    speed_error_L1=0;
+    speed_error_L2=0;
+    speed_error_R0=0;
+    speed_error_R1=0;
+    speed_error_R2=0;
+    left_pwm=0;
+    right_pwm=0;
 }
 
 void key_control()
 {
-    drive_data_get();
+//    drive_data_get();
     key_scan();
     data_change(key_value);
     show();

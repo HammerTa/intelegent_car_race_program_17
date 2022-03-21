@@ -30,6 +30,7 @@ extern int middle_end;
 extern int right_line[120];
 extern int left_line[120];
 extern int middleline[240];
+extern int mid_row[240];
 extern int max;
 extern int min;
 extern int line[120];

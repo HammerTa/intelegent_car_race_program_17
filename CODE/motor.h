@@ -21,6 +21,10 @@ extern int right_motor_kp,right_motor_ki,right_motor_kd;
 extern int setspeed;     //别给太大，一开始可以给20
 extern int left_pwm_out;
 extern int right_pwm_out;
+extern int speed_error_L0,speed_error_L1,speed_error_L2;
+extern int speed_error_R0,speed_error_R1,speed_error_R2;
+extern int left_pwm,right_pwm;
+extern uint8 pwm0_flag;
 
 
 void steering_init(void);

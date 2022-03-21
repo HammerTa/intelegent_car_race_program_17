@@ -4,7 +4,7 @@
 //----------------变量定义区--------------
  
 int  dj_end;
-unsigned char stop=0;//停车标志位，置1表示停车
+unsigned char stop=1;//停车标志位，置1表示停车
 unsigned char go=0;//直行标志位，1表示直行
 unsigned char deal_flag=0;//处理标志位
 //int i = 0,j = 0;
@@ -86,18 +86,18 @@ int mid_flag=0;
 //--------------------------
 //摄像头前瞻量，根据摄像头位置设置，数字代表权重大小，例如第1个数为1代表第0行的权重为1
 int weight[240]={
-3,3,3,3,3,3,3,3,3,3,//11-20
-4,4,4,4,4,4,4,4,4,4,//21-30
-6,6,6,6,6,6,6,6,6,6,//31-40
+3,3,3,3,3,3,3,3,3,3,//1-10
+4,4,4,4,4,4,4,4,4,4,//11-20
+5,5,5,5,5,5,5,5,5,5,//21-30
+4,4,4,4,4,4,4,4,4,4,//31-40
 2,2,2,2,2,2,2,2,2,2,//41-50
-1,1,1,1,1,1,1,1,1,1,//0-10
-0,0,0,0,0,0,0,0,0,0,//51-60
+1,1,1,1,1,1,1,1,1,1,//51-60
 0,0,0,0,0,0,0,0,0,0,//61-70
 0,0,0,0,0,0,0,0,0,0,//71-80
 0,0,0,0,0,0,0,0,0,0,//81-90
 0,0,0,0,0,0,0,0,0,0,//91-100
 0,0,0,0,0,0,0,0,0,0,//101-110
-0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,//111-120
 0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,
@@ -710,6 +710,7 @@ void Racing_Line()
                 {
                   middleline[pin]=right.Col[0]-TrackWild[row]/2;
                   col=middleline[pin];
+                  mid_row[pin]=flag;
                   IMG_DATA[flag][col]=GREEN_IMG;
                 }
                 else
@@ -718,6 +719,7 @@ void Racing_Line()
                   row=right.Row[i];
                   col=right.Col[i]-TrackWild[row]/2;
                   middleline[pin]=col;
+                  mid_row[pin]=row;
                   i++;
                   if(row>5&&row<ROW-5)
                   {
@@ -742,12 +744,14 @@ void Racing_Line()
                 middleline[pin]=left.Col[0]+TrackWild[row]/2;
                   col=middleline[pin];
                   IMG_DATA[flag][col]=GREEN_IMG;
+                  mid_row[pin]=flag;
               }
               else
               {
                 row=left.Row[i];
                 col=left.Col[i]+TrackWild[row]/2;
                 middleline[pin]=col;
+                mid_row[pin]=row;
                 i++;
                 if(row>5&&row<ROW-5)
                 {
@@ -771,6 +775,7 @@ void Racing_Line()
               {
                 middleline[pin]=left.Col[0]+TrackWild[row]/2;
                   col=middleline[pin];
+                  mid_row[pin]=flag;
                   IMG_DATA[flag][col]=GREEN_IMG;
               }
               else
@@ -778,6 +783,7 @@ void Racing_Line()
                 row=left.Row[i];
                 col=left.Col[i]+TrackWild[row]/2;
                 middleline[pin]=col;
+                mid_row[pin]=row;
                 i++;
                 if(row>5&&row<ROW-5)
                 {
@@ -802,6 +808,7 @@ void Racing_Line()
               {
                 middleline[pin]=right.Col[0]-TrackWild[row]/2;
                   col=middleline[pin];
+                  mid_row[pin]=flag;
                   IMG_DATA[flag][col]=GREEN_IMG;
               }
               else
@@ -810,6 +817,7 @@ void Racing_Line()
                 col=right.Col[i]-TrackWild[row]/2;
                 middleline[pin]=col;
                 i++;
+                mid_row[pin]=row;
                 if(row>5&&row<ROW-5)
                 {
                   if(col>5&&col<COL-5)

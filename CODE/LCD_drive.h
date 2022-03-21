@@ -15,9 +15,11 @@ extern uint8 show_img;
 
 
 void show(void);
+void drive_data_get(void);
 void key_scan(void);
 void data_change(int);
 void key_control(void);
 void drive_data_init(void);
+void changing(void);
 
 #endif /* CODE_LCD_DRIVE_H_ */

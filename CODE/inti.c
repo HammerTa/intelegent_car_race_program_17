@@ -35,6 +35,7 @@ void inti_all()
     lcd_showstr(0,3,"Ct init done");
     uart_init(UART_2, 115200, UART2_TX_P10_5, UART2_RX_P10_6);
     lcd_showstr(0,4,"UA init done");
+    drive_data_get();
     systick_delay_ms(STM0,1000);
     lcd_showstr(0,5,"Ready to go");
     systick_delay_ms(STM0,1000);
