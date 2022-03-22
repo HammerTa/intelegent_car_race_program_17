@@ -21,5 +21,7 @@ void data_change(int);
 void key_control(void);
 void drive_data_init(void);
 void changing(void);
+void Data_save(void);
+void Read_data(void);
 
 #endif /* CODE_LCD_DRIVE_H_ */

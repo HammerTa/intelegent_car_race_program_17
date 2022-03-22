@@ -26,8 +26,8 @@ int8 title4[20]="diff speed";
 //页面标题
 
 float gear_data[4];//={duoji_kp0,duoji_kd0,duoji_kp,duoji_kd};//舵机
-int L_motor_data[3];//={left_motor_kp,left_motor_ki,left_motor_kd};//左电机
-int R_motor_data[3];//={right_motor_kp,right_motor_ki,right_motor_kd};//右电机
+float L_motor_data[3];//={left_motor_kp,left_motor_ki,left_motor_kd};//左电机
+float R_motor_data[3];//={right_motor_kp,right_motor_ki,right_motor_kd};//右电机
 float speed_data[2];//={setspeed,chasu_k};//差速与速度设置
 //需要改变的数据
 
@@ -36,6 +36,8 @@ int show_value=0;
 uint8 show_img=0;
 int title_flag=0;
 int point_flag=1;
+uint32 Save[100];
+
 
 void drive_data_get()
 {
@@ -67,16 +69,16 @@ void show()
             break;
         case 1:
             lcd_showstr(0,0,title2);
-            lcd_showint32(0,1,L_motor_data[0],5);
-            lcd_showint32(0,2,L_motor_data[1],5);
-            lcd_showint32(0,3,L_motor_data[2],5);
+            lcd_showfloat(0,1,L_motor_data[0],2,1);
+            lcd_showfloat(0,2,L_motor_data[1],2,1);
+            lcd_showfloat(0,3,L_motor_data[2],2,1);
             lcd_showint32(0,7,point_flag,5);
             break;
         case 2:
             lcd_showstr(0,0,title3);
-            lcd_showint32(0,1,R_motor_data[0],5);
-            lcd_showint32(0,2,R_motor_data[1],5);
-            lcd_showint32(0,3,R_motor_data[2],5);
+            lcd_showfloat(0,1,R_motor_data[0],2,1);
+            lcd_showfloat(0,2,R_motor_data[1],2,1);
+            lcd_showfloat(0,3,R_motor_data[2],2,1);
             lcd_showint32(0,7,point_flag,5);
             break;
         case 3:
@@ -141,10 +143,20 @@ void data_change(int key_input)
                     gear_data[point_flag-1]+=0.1;
                     break;
                 case 1:
-                    L_motor_data[point_flag-1]+=1;
+                    if(point_flag==2)
+                    {
+                        L_motor_data[point_flag-1]+=0.1;
+                    }
+                    else
+                        L_motor_data[point_flag-1]+=1;
                     break;
                 case 2:
-                    R_motor_data[point_flag-1]+=1;
+                    if(point_flag==2)
+                    {
+                        R_motor_data[point_flag-1]+=0.1;
+                    }
+                    else
+                        R_motor_data[point_flag-1]+=1;
                     break;
                 case 3:
                     if(point_flag==1)
@@ -166,10 +178,20 @@ void data_change(int key_input)
                     gear_data[point_flag-1]-=0.1;
                     break;
                 case 1:
-                    L_motor_data[point_flag-1]-=1;
+                    if(point_flag==2)
+                    {
+                        L_motor_data[point_flag-1]-=0.1;
+                    }
+                    else
+                        L_motor_data[point_flag-1]-=1;
                     break;
                 case 2:
-                    R_motor_data[point_flag-1]-=1;
+                    if(point_flag==2)
+                    {
+                        R_motor_data[point_flag-1]-=0.1;
+                    }
+                    else
+                        R_motor_data[point_flag-1]-=1;
                     break;
                 case 3:
                     if(point_flag==1)
@@ -178,9 +200,10 @@ void data_change(int key_input)
                         speed_data[point_flag-1]-=0.01;
                     break;
                 case 4:
-                    changing();
-                    drive_data_get();
+                    Data_save();
                     lcd_showstr(0,1,"GO!");
+                    systick_delay_ms(STM0,1000);
+                    changing();
                     break;
             }
             key_value=0;
@@ -212,6 +235,46 @@ void changing()
     speed_error_R2=0;
     left_pwm=0;
     right_pwm=0;
+}
+
+void Data_save()
+{
+    Save[0]=(uint32)(gear_data[0]*10);
+    Save[1]=(uint32)(gear_data[1]*10);
+    Save[2]=(uint32)(gear_data[2]*10);
+    Save[3]=(uint32)(gear_data[3]*10);
+    Save[4]=(uint32)(L_motor_data[0]*10);
+    Save[5]=(uint32)(L_motor_data[1]*10);
+    Save[6]=(uint32)(L_motor_data[2]*10);
+    Save[7]=(uint32)(R_motor_data[0]*10);
+    Save[8]=(uint32)(R_motor_data[1]*10);
+    Save[9]=(uint32)(R_motor_data[2]*10);
+    Save[10]=(uint32)(speed_data[0]*10);
+    Save[11]=(uint32)(speed_data[1]*10);
+    for(int i=0;i<100;i++)
+    {
+        eeprom_page_program(0,i,&Save[i]);
+    }
+}
+
+void Read_data()
+{
+    for(int i=0;i<100;i++)
+    {
+        Save[i]=flash_read(0,i,uint32);
+    }
+    gear_data[0]=0.1*(float)Save[0];
+    gear_data[1]=0.1*(float)Save[1];
+    gear_data[2]=0.1*(float)Save[2];
+    gear_data[3]=0.1*(float)Save[3];
+    L_motor_data[0]=0.1*(float)Save[4];
+    L_motor_data[1]=0.1*(float)Save[5];
+    L_motor_data[2]=0.1*(float)Save[6];
+    R_motor_data[0]=0.1*(float)Save[7];
+    R_motor_data[1]=0.1*(float)Save[8];
+    R_motor_data[2]=0.1*(float)Save[9];
+    speed_data[0]=0.1*(float)Save[10];
+    speed_data[1]=0.1*(float)Save[11];
 }
 
 void key_control()

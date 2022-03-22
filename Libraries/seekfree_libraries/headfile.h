@@ -121,7 +121,6 @@
 #include "IMG_DEAL.h"
 #include "inti.h"
 #include "motor.h"
-#include "Key.h"
 #include "VCAN_computer.h"
 #include "LCD_drive.h"
 #endif

@@ -16,8 +16,8 @@ extern float duoji_kp0,duoji_kd0;  //直道pd
 extern float duoji_kp1,duoji_kd1;  //弯道pd
 extern float chasu,chasu_k;        //差速，用于转弯，低速时不需要
 extern float P_rate,D_rate;
-extern int left_motor_kp,left_motor_ki,left_motor_kd;    //电机pid用于稳定控制轮子转速
-extern int right_motor_kp,right_motor_ki,right_motor_kd;
+extern float left_motor_kp,left_motor_ki,left_motor_kd;    //电机pid用于稳定控制轮子转速
+extern float right_motor_kp,right_motor_ki,right_motor_kd;
 extern int setspeed;     //别给太大，一开始可以给20
 extern int left_pwm_out;
 extern int right_pwm_out;

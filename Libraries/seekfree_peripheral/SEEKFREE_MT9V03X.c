@@ -7,28 +7,28 @@
  * 以下所有内容版权均属逐飞科技所有，未经允许不得用于商业用途，
  * 欢迎各位使用并传播本程序，修改内容时必须保留逐飞科技的版权声明。
  *
- * @file            总钻风
- * @company         成都逐飞科技有限公司
- * @author          逐飞科技(QQ3184284598)
- * @version         查看doc内version文件 版本说明
- * @Software        ADS v1.2.2
- * @Target core     TC264D
- * @Taobao          https://seekfree.taobao.com/
- * @date            2020-3-23
- * @note
-                    接线定义：
-                    ------------------------------------
-                    模块管脚                        单片机管脚
-                    SDA(51的RX)              查看SEEKFREE_MT9V03X.h文件中的MT9V03X_COF_UART_TX宏定义
-                    SCL(51的TX)              查看SEEKFREE_MT9V03X.h文件中的MT9V03X_COF_UART_RX宏定义
-                    场中断(VSY)                查看SEEKFREE_MT9V03X.h文件中的MT9V03X_VSYNC_PIN宏定义
-                    行中断(HREF)               程序没有使用，因此不连接
-                    像素中断(PCLK)              查看SEEKFREE_MT9V03X.h文件中的MT9V03X_PCLK_PIN宏定义
-                    数据口(D0-D7)          查看SEEKFREE_MT9V03X.h文件中的MT9V03X_DATA_PIN宏定义
-                    ------------------------------------
-
-                    默认分辨率是                      188*120
-                    默认FPS                 50帧
+ * @file       		总钻风
+ * @company	   		成都逐飞科技有限公司
+ * @author     		逐飞科技(QQ3184284598)
+ * @version    		查看doc内version文件 版本说明
+ * @Software 		ADS v1.2.2
+ * @Target core		TC264D
+ * @Taobao   		https://seekfree.taobao.com/
+ * @date       		2020-3-23
+ * @note		
+					接线定义：
+					------------------------------------ 
+					模块管脚            			单片机管脚
+					SDA(51的RX)         		查看SEEKFREE_MT9V03X.h文件中的MT9V03X_COF_UART_TX宏定义
+					SCL(51的TX)         		查看SEEKFREE_MT9V03X.h文件中的MT9V03X_COF_UART_RX宏定义
+					场中断(VSY)         		查看SEEKFREE_MT9V03X.h文件中的MT9V03X_VSYNC_PIN宏定义
+					行中断(HREF)				程序没有使用，因此不连接
+					像素中断(PCLK)      		查看SEEKFREE_MT9V03X.h文件中的MT9V03X_PCLK_PIN宏定义
+					数据口(D0-D7)			查看SEEKFREE_MT9V03X.h文件中的MT9V03X_DATA_PIN宏定义
+					------------------------------------ 
+	
+					默认分辨率是           			188*120
+					默认FPS                 50帧
  ********************************************************************************************************************/
 
 
@@ -49,6 +49,7 @@ uint8   receive_num = 0;
 vuint8  uart_receive_flag;
 
 uint8   link_list_num;
+int16 timeout = MT9V03X_INIT_TIMEOUT;
 
 //需要配置到摄像头的数据
 int16 MT9V03X_CFG[CONFIG_FINISH][2]=
@@ -62,7 +63,8 @@ int16 MT9V03X_CFG[CONFIG_FINISH][2]=
     {LR_OFFSET,         0},   //图像左右偏移量    正值 右偏移   负值 左偏移  列为188 376 752时无法设置偏移    摄像头收偏移数据后会自动计算最大偏移，如果超出则设置计算出来的最大偏移
     {UD_OFFSET,         0},   //图像上下偏移量    正值 上偏移   负值 下偏移  行为120 240 480时无法设置偏移    摄像头收偏移数据后会自动计算最大偏移，如果超出则设置计算出来的最大偏移
     {GAIN,              32},  //图像增益          范围16-64     增益可以在曝光时间固定的情况下改变图像亮暗程度
-
+    {PCLK_MODE,         0},   //仅总钻风MT9V034 V2.0以及以上版本支持该命令，
+                              //像素时钟模式命令 PCLK模式     默认：0     可选参数为：0 1。        0：不输出消隐信号，1：输出消隐信号。(通常都设置为0，如果使用CH32V307的DVP接口或STM32的DCMI接口采集需要设置为1)
     
     {INIT,              0}    //摄像头开始初始化
 };
@@ -84,16 +86,16 @@ int16 GET_CFG[CONFIG_FINISH-1][2]=
 //-------------------------------------------------------------------------------------------------------------------
 //  @brief      MT9V03X摄像头串口中断函数
 //  @param      NULL
-//  @return     void
+//  @return     void					
 //  @since      v1.0
-//  Sample usage:
+//  Sample usage:	
 //  @note       此函数在isr.c中 被串口中断函数调用
 //-------------------------------------------------------------------------------------------------------------------
 void mt9v03x_uart_callback(void)
 {
-    while(uart_query(MT9V03X_COF_UART, &receive[receive_num]))
-    {
-        receive_num++;
+	while(uart_query(MT9V03X_COF_UART, &receive[receive_num]))
+	{
+		receive_num++;
 
         if(1==receive_num && 0XA5!=receive[0])  receive_num = 0;
         if(3 == receive_num)
@@ -102,7 +104,7 @@ void mt9v03x_uart_callback(void)
             uart_receive_flag = 1;
         }
 
-    }
+	}
 }
 
 //-------------------------------------------------------------------------------------------------------------------
@@ -115,7 +117,7 @@ void mt9v03x_uart_callback(void)
 //-------------------------------------------------------------------------------------------------------------------
 void set_config(UARTN_enum uartn, int16 buff[CONFIG_FINISH-1][2])
 {
-    uint16 temp, i;
+	uint16 temp, i;
     uint8  send_buffer[4];
 
     uart_receive_flag = 0;
@@ -133,10 +135,20 @@ void set_config(UARTN_enum uartn, int16 buff[CONFIG_FINISH-1][2])
         uart_putbuff(uartn,send_buffer,4);
         systick_delay_ms(STM0, 2);
     }
+
+    timeout = MT9V03X_INIT_TIMEOUT;
     //等待摄像头初始化成功
-    while(!uart_receive_flag);
+    while(!uart_receive_flag && timeout-- > 0)
+    {
+        systick_delay_ms(STM0, 1);
+    }
     uart_receive_flag = 0;
-    while((0xff != receive[1]) || (0xff != receive[2]));
+    timeout = MT9V03X_INIT_TIMEOUT;
+    //等待接受回传数据
+    while(((0xff != receive[1]) || (0xff != receive[2])) && timeout-- > 0)
+    {
+        systick_delay_ms(STM0, 1);
+    }
     //以上部分对摄像头配置的数据全部都会保存在摄像头上51单片机的eeprom中
     //利用set_exposure_time函数单独配置的曝光数据不存储在eeprom中
 }
@@ -152,7 +164,7 @@ void set_config(UARTN_enum uartn, int16 buff[CONFIG_FINISH-1][2])
 //-------------------------------------------------------------------------------------------------------------------
 void get_config(UARTN_enum uartn, int16 buff[CONFIG_FINISH-1][2])
 {
-    uint16 temp, i;
+	uint16 temp, i;
     uint8  send_buffer[4];
     
     for(i=0; i<CONFIG_FINISH-1; i++)
@@ -165,8 +177,12 @@ void get_config(UARTN_enum uartn, int16 buff[CONFIG_FINISH-1][2])
         
         uart_putbuff(uartn,send_buffer,4);
         
+        timeout = MT9V03X_INIT_TIMEOUT;
         //等待接受回传数据
-        while(!uart_receive_flag);
+        while(!uart_receive_flag && timeout-- > 0)
+        {
+            systick_delay_ms(STM0, 1);
+        }
         uart_receive_flag = 0;
         
         buff[i][1] = receive[1]<<8 | receive[2];
@@ -192,8 +208,12 @@ uint16 get_version(UARTN_enum uartn)
     
     uart_putbuff(uartn,send_buffer,4);
         
+    timeout = MT9V03X_INIT_TIMEOUT;
     //等待接受回传数据
-    while(!uart_receive_flag);
+    while(!uart_receive_flag && timeout-- > 0)
+    {
+        systick_delay_ms(STM0, 1);
+    }
     uart_receive_flag = 0;
     
     return ((uint16)(receive[1]<<8) | receive[2]);
@@ -209,7 +229,7 @@ uint16 get_version(UARTN_enum uartn)
 //-------------------------------------------------------------------------------------------------------------------
 uint16 set_exposure_time(UARTN_enum uartn, uint16 light)
 {
-    uint16 temp;
+	uint16 temp;
     uint8  send_buffer[4];
 
     send_buffer[0] = 0xA5;
@@ -220,8 +240,12 @@ uint16 set_exposure_time(UARTN_enum uartn, uint16 light)
     
     uart_putbuff(uartn,send_buffer,4);
     
+    timeout = MT9V03X_INIT_TIMEOUT;
     //等待接受回传数据
-    while(!uart_receive_flag);
+    while(!uart_receive_flag && timeout-- > 0)
+    {
+        systick_delay_ms(STM0, 1);
+    }
     uart_receive_flag = 0;
     
     temp = receive[1]<<8 | receive[2];
@@ -237,11 +261,11 @@ uint16 set_exposure_time(UARTN_enum uartn, uint16 light)
 //  @param      data        需要写入的数据
 //  @return     uint16      寄存器当前数据，用于确认是否写入成功
 //  @since      v1.0
-//  Sample usage:           调用该函数前请先初始化串口
+//  Sample usage:			调用该函数前请先初始化串口
 //-------------------------------------------------------------------------------------------------------------------
 uint16 set_mt9v03x_reg(UARTN_enum uartn, uint8 addr, uint16 data)
 {
-    uint16 temp;
+	uint16 temp;
     uint8  send_buffer[4];
     
     send_buffer[0] = 0xA5;
@@ -261,8 +285,12 @@ uint16 set_mt9v03x_reg(UARTN_enum uartn, uint8 addr, uint16 data)
     
     uart_putbuff(uartn,send_buffer,4);
     
+    timeout = MT9V03X_INIT_TIMEOUT;
     //等待接受回传数据
-    while(!uart_receive_flag);
+    while(!uart_receive_flag && timeout-- > 0)
+    {
+        systick_delay_ms(STM0, 1);
+    }
     uart_receive_flag = 0;
     
     temp = receive[1]<<8 | receive[2];
@@ -273,19 +301,19 @@ uint16 set_mt9v03x_reg(UARTN_enum uartn, uint8 addr, uint16 data)
 //-------------------------------------------------------------------------------------------------------------------
 //  @brief      MT9V03X摄像头初始化
 //  @param      NULL
-//  @return     void
+//  @return     void					
 //  @since      v1.0
-//  Sample usage:   使用FLEXIO接口采集摄像头
+//  Sample usage:	使用FLEXIO接口采集摄像头	
 //-------------------------------------------------------------------------------------------------------------------
 void mt9v03x_init(void)
 {
-    uint8 i;
+	uint8 i;
     camera_type = CAMERA_GRAYSCALE;//设置连接摄像头类型
     camera_buffer_addr = mt9v03x_image[0];
 
     boolean interrupt_state = disableInterrupts();
 
-    uart_init (MT9V03X_COF_UART, 9600, MT9V03X_COF_UART_TX, MT9V03X_COF_UART_RX);   //初始换串口 配置摄像头
+    uart_init (MT9V03X_COF_UART, 9600, MT9V03X_COF_UART_TX, MT9V03X_COF_UART_RX);	//初始换串口 配置摄像头
     enableInterrupts();//开启中断
 
     //等待摄像头上电初始化成功 方式有两种：延时或者通过获取配置的方式 二选一
@@ -300,78 +328,99 @@ void mt9v03x_init(void)
 
     disableInterrupts();
 
-    //摄像头采集初始化
-    //初始化 数据引脚
-    for(i=0; i<8; i++)
-    {
-        gpio_init((PIN_enum)(MT9V03X_DATA_PIN+i), GPI, 0, PULLUP);
-    }
+	//摄像头采集初始化
+	//初始化 数据引脚
+	for(i=0; i<8; i++)
+	{
+		gpio_init((PIN_enum)(MT9V03X_DATA_PIN+i), GPI, 0, PULLUP);
+	}
 
-    link_list_num = eru_dma_init(MT9V03X_DMA_CH, GET_PORT_IN_ADDR(MT9V03X_DATA_PIN), camera_buffer_addr, MT9V03X_PCLK_PIN, FALLING, MT9V03X_W*MT9V03X_H);//如果超频到300M 倒数第二个参数请设置为FALLING
+    link_list_num = eru_dma_init(MT9V03X_DMA_CH, GET_PORT_IN_ADDR(MT9V03X_DATA_PIN), camera_buffer_addr, MT9V03X_PCLK_PIN, RISING, MT9V03X_W*MT9V03X_H);//如果超频到300M 倒数第二个参数请设置为FALLING
 
-    eru_init(MT9V03X_VSYNC_PIN, FALLING);   //初始化场中断，并设置为下降沿触发中断
+    eru_init(MT9V03X_VSYNC_PIN, FALLING);	//初始化场中断，并设置为下降沿触发中断
     restoreInterrupts(interrupt_state);
 }
 
 
-uint8   mt9v03x_finish_flag = 0;    //一场图像采集完成标志位
-uint8   mt9v03x_dma_int_num;    //当前DMA中断次数
+uint8   mt9v03x_finish_flag = 0;//一场图像采集完成标志位
+uint8 	mt9v03x_lost_flag = 1;	//图像丢失标志位
+uint8	mt9v03x_dma_int_num;	//当前DMA中断次数
+uint8 	mt9v03x_dma_init_flag;	//是否需要重新初始化
 //-------------------------------------------------------------------------------------------------------------------
 //  @brief      MT9V03X摄像头场中断
 //  @param      NULL
-//  @return     void
+//  @return     void			
 //  @since      v1.0
-//  Sample usage:               此函数在isr.c中被eru（GPIO中断）中断调用
+//  Sample usage:				此函数在isr.c中被eru（GPIO中断）中断调用
 //-------------------------------------------------------------------------------------------------------------------
 void mt9v03x_vsync(void)
 {
-    CLEAR_GPIO_FLAG(MT9V03X_VSYNC_PIN);
-    mt9v03x_dma_int_num = 0;
-    if(!mt9v03x_finish_flag)//查看图像数组是否使用完毕，如果未使用完毕则不开始采集，避免出现访问冲突
+	CLEAR_GPIO_FLAG(MT9V03X_VSYNC_PIN);
+	mt9v03x_dma_int_num = 0;
+	if(mt9v03x_dma_init_flag || mt9v03x_lost_flag)
     {
-        if(1 == link_list_num)
-        {
-            //没有采用链接传输模式 重新设置目的地址
-            DMA_SET_DESTINATION(MT9V03X_DMA_CH, camera_buffer_addr);
-        }
+        mt9v03x_dma_init_flag = 0;
+        IfxDma_resetChannel(&MODULE_DMA, MT9V03X_DMA_CH);
+        link_list_num = eru_dma_init(MT9V03X_DMA_CH, GET_PORT_IN_ADDR(MT9V03X_DATA_PIN), camera_buffer_addr, MT9V03X_PCLK_PIN, RISING, MT9V03X_W*MT9V03X_H);
         dma_start(MT9V03X_DMA_CH);
     }
-
+    else
+	{
+		if(1 == link_list_num)
+		{
+			//没有采用链接传输模式 重新设置目的地址
+			DMA_SET_DESTINATION(MT9V03X_DMA_CH, camera_buffer_addr);
+		}
+		dma_start(MT9V03X_DMA_CH);
+	}
+	
+	mt9v03x_lost_flag = 1;
 }
 
 
 //-------------------------------------------------------------------------------------------------------------------
 //  @brief      MT9V03X摄像头DMA完成中断
 //  @param      NULL
-//  @return     void
+//  @return     void			
 //  @since      v1.0
-//  Sample usage:               此函数在isr.c中被dma中断调用
+//  Sample usage:				此函数在isr.c中被dma中断调用
 //-------------------------------------------------------------------------------------------------------------------
 void mt9v03x_dma(void)
 {
-    CLEAR_DMA_FLAG(MT9V03X_DMA_CH);
-    mt9v03x_dma_int_num++;
+	CLEAR_DMA_FLAG(MT9V03X_DMA_CH);
 
-    if(mt9v03x_dma_int_num >= link_list_num)
-    {
-        //采集完成
-        mt9v03x_dma_int_num = 0;
-        mt9v03x_finish_flag = 1;//一副图像从采集开始到采集结束耗时3.8MS左右(50FPS、188*120分辨率)
+	if(IfxDma_getChannelTransactionRequestLost(&MODULE_DMA, MT9V03X_DMA_CH))
+    {	//图像错位
+        mt9v03x_finish_flag = 0;
         dma_stop(MT9V03X_DMA_CH);
+        IfxDma_clearChannelTransactionRequestLost(&MODULE_DMA, MT9V03X_DMA_CH);
+        mt9v03x_dma_init_flag = 1;
     }
+    else
+	{
+		mt9v03x_dma_int_num++;
+        if(mt9v03x_dma_int_num >= link_list_num)
+        {
+            //采集完成
+            mt9v03x_dma_int_num = 0;
+			mt9v03x_lost_flag = 0;
+            mt9v03x_finish_flag = 1;//一副图像从采集开始到采集结束耗时3.8MS左右(50FPS、188*120分辨率)
+            dma_stop(MT9V03X_DMA_CH);
+        }
+	}
 }
 
 
 
 //-------------------------------------------------------------------------------------------------------------------
 //  @brief      总钻风摄像头图像发送至上位机查看图像
-//  @param      uartn           使用的串口号
-//  @param      image           需要发送的图像地址
-//  @param      width           图像的列
-//  @param      height          图像的行
-//  @return     void
+//  @param      uartn			使用的串口号
+//  @param      image			需要发送的图像地址
+//  @param      width			图像的列
+//  @param      height			图像的行
+//  @return     void			
 //  @since      v1.0
-//  Sample usage:
+//  Sample usage:				
 //-------------------------------------------------------------------------------------------------------------------
 void seekfree_sendimg_03x(UARTN_enum uartn, uint8 *image, uint16 width, uint16 height)
 {
@@ -389,3 +438,4 @@ void seekfree_sendimg_03x(UARTN_enum uartn, uint8 *image, uint16 width, uint16 h
      uart_putbuff(uartn, image, width*height);  //发送图像
      uart_putchar(uartn,0x01);//发送命令
 }
+

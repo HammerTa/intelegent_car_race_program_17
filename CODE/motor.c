@@ -40,14 +40,13 @@ int ERROR[5]={0,0,0,0,0};
 //static int COUNT=0;
 uint8 pwm0_flag=0;
 //================需要修改的================
-float duoji_kp=0,duoji_kd=0;    //舵机，用于打角转弯
-float duoji_kp0=1.8,duoji_kd0=3.3;
-float duoji_kp1=4.8,duoji_kd1=1.4;
-float chasu=0,chasu_k=0.0;      //差速，用于转弯，低速时不需要
+float duoji_kp,duoji_kd;    //舵机，用于打角转弯
+float duoji_kp0,duoji_kd0;
+float duoji_kp1,duoji_kd1;
+float chasu,chasu_k;      //差速，用于转弯，低速时不需要
 
-int left_motor_kp=75,left_motor_ki=0,left_motor_kd=0;    //电机pid用于稳定控制轮子转速
-int right_motor_kp=75,right_motor_ki=0,right_motor_kd=0;
-float l_i=0.1,r_i=0.1;
+float left_motor_kp,left_motor_ki,left_motor_kd;    //电机pid用于稳定控制轮子转速
+float right_motor_kp,right_motor_ki,right_motor_kd;
 int setspeed=0;     //别给太大，一开始可以给20
 int time=0;
 int Mid_row;
@@ -256,7 +255,7 @@ void motor_pid()
 {
   //左电机计算
   speed_error_L0=setspeed_L-speed_l;
-  left_pwm=(int)((speed_error_L0-speed_error_L1)*left_motor_kp+speed_error_L0*l_i+(speed_error_L0-2*speed_error_L1+speed_error_L2)*left_motor_kd);
+  left_pwm=(int)((speed_error_L0-speed_error_L1)*left_motor_kp+speed_error_L0*left_motor_ki+(speed_error_L0-2*speed_error_L1+speed_error_L2)*left_motor_kd);
   left_pwm_out+=left_pwm;
   speed_error_L2=speed_error_L1;
   speed_error_L1=speed_error_L0;
@@ -270,7 +269,7 @@ void motor_pid()
 
   //右电机计算
   speed_error_R0=setspeed_R-speed_r;
-  right_pwm=(int)((speed_error_R0-speed_error_R1)*right_motor_kp+speed_error_R0*r_i+(speed_error_R0-2*speed_error_R1+speed_error_R2)*right_motor_kd);
+  right_pwm=(int)((speed_error_R0-speed_error_R1)*right_motor_kp+speed_error_R0*right_motor_ki+(speed_error_R0-2*speed_error_R1+speed_error_R2)*right_motor_kd);
   right_pwm_out+=right_pwm;
   speed_error_R2=speed_error_R1;
   speed_error_R1=speed_error_R0;

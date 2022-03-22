@@ -44,11 +44,16 @@ struct APEX
 	int Apex_Col;
 	int Mark;
 };
-struct APEX left_apex,right_apex; 
 
+struct Vector
+{
+    int star[2];
+    int end[2];
+};
 
-
+struct APEX left_apex,right_apex;
 struct AG right_ag,left_ag;//寻找弯心所需变量
+struct Vector Vector_r,Vector_l;//起止点近似切线向量
 
 int right_line[120] = {160};//此处需要改成159，但不知道为何运行没出问题，可能是没遇到只有左单边的情况，去学校再跑一下车试试
 
@@ -189,6 +194,14 @@ void Deal_Init()
 	}  
     	left_apex.Mark=254;
 	right_apex.Mark=254;
+	Vector_r.star[0]=254;
+	Vector_r.star[1]=254;
+	Vector_r.end[0]=254;
+	Vector_r.end[1]=254;
+    Vector_l.star[0]=254;
+    Vector_l.star[1]=254;
+    Vector_l.end[0]=254;
+    Vector_l.end[1]=254;
 }
 
 ///***************************************************************
@@ -852,6 +865,17 @@ void protect()
   if(SUM>=170)
     stop=1;
   return;
+}
+
+//***************************************************************
+//* 函数名称： angle
+//* 功能说明： 边线各角度数据
+//* 函数返回：
+//* 备 注：
+//***************************************************************
+void Angle_IMG()
+{
+
 }
 
 //***************************************************************
