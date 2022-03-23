@@ -37,6 +37,8 @@ extern int line[120];
 extern int weight[240];
 extern int wild1;
 extern int wild10;
+extern float Angle_end;
+extern int L_lenth,R_lenth;
 
 extern unsigned char stop;
 extern unsigned char deal_flag;

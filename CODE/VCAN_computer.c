@@ -101,8 +101,8 @@ void bluesend (void)
       bluetooth[2]=(int)right_pwm_out;
       bluetooth[3]=(int)left_pwm_out;
       bluetooth[4]=(int)setspeed;
-      bluetooth[5]=0;
-      bluetooth[6]=0;
-      bluetooth[7]=0;
+      bluetooth[5]=(int)Angle_end;
+      bluetooth[6]=(int)L_lenth;
+      bluetooth[7]=(int)R_lenth;
       vcan_sendware(bluetooth,sizeof(bluetooth));
 }

@@ -30,8 +30,7 @@ struct DIV
 	int Row[240]; 
 	int Col[240]; 
 };
-struct DIV RacingLine;//目标线路
-struct DIV left,right;//左右边线
+
 struct AG
 {
 	float k;
@@ -47,10 +46,12 @@ struct APEX
 
 struct Vector
 {
-    int star[2];
-    int end[2];
+    float star[2];
+    float end[2];
 };
 
+struct DIV RacingLine;//目标线路
+struct DIV left,right;//左右边线
 struct APEX left_apex,right_apex;
 struct AG right_ag,left_ag;//寻找弯心所需变量
 struct Vector Vector_r,Vector_l;//起止点近似切线向量
@@ -67,6 +68,8 @@ int mid_row_R[240];
 int mid_row_L[240];
 int mid_row[240];
 int mid_flag=0;
+int L_lenth,R_lenth;
+float Angle_end;
 //*********************************************
 
 //**********************************************
@@ -202,6 +205,8 @@ void Deal_Init()
     Vector_l.star[1]=254;
     Vector_l.end[0]=254;
     Vector_l.end[1]=254;
+    L_lenth=0;
+    R_lenth=0;
 }
 
 ///***************************************************************
@@ -293,6 +298,7 @@ void left_jump()
 						left.Col[pin] = col + 1;
 						IMG_DATA[row][col + 1] = RED_IMG;
 						find = 1;
+						L_lenth++;
 						break;
 					}
 				}
@@ -338,6 +344,7 @@ void left_jump()
 				whitecounter = 0;
 				left.Row[pin] = row;
 				left.Col[pin] = col;
+				L_lenth++;
 				break;
 			}
 		}
@@ -375,6 +382,7 @@ void right_jump()
 						right.Col[pin] = col - 1;
 						IMG_DATA[row][col - 1] = BLUE_IMG;
 						find = 1;
+						R_lenth++;
 						break;
 					}
 				}
@@ -420,6 +428,7 @@ void right_jump()
 				whitecounter = 0;
 				right.Row[pin] = row;
 				right.Col[pin] = col;
+				R_lenth++;
 				break;
 			}
 		}
@@ -875,7 +884,24 @@ void protect()
 //***************************************************************
 void Angle_IMG()
 {
-
+    if(L_lenth<10)
+    {
+        return;
+    }
+    if(R_lenth<10)
+    {
+        return;
+    }
+    Vector_l.star[0]=(float)left.Col[5]-left.Col[1];//左起点向量x
+    Vector_l.star[1]=(float)left.Row[5]-left.Row[1];//左起点向量y
+    Vector_l.end[0]=(float)left.Col[L_lenth-1]-left.Col[L_lenth-5];//左终点向量x
+    Vector_l.end[1]=(float)left.Row[L_lenth-1]-left.Row[L_lenth-5];//左终点向量y
+    Vector_r.star[0]=(float)right.Col[5]-right.Col[1];//左起点向量x
+    Vector_r.star[1]=(float)right.Row[5]-right.Row[1];//左起点向量y
+    Vector_r.end[0]=(float)right.Col[L_lenth-1]-right.Col[L_lenth-5];//左终点向量x
+    Vector_r.end[1]=(float)right.Row[L_lenth-1]-right.Row[L_lenth-5];//左终点向量y
+    Angle_end=acos((Vector_l.end[0]*Vector_r.end[0]+Vector_l.end[1]*Vector_r.end[1])/(sqrt(Vector_l.end[0]*Vector_l.end[0]+Vector_l.end[1]*Vector_l.end[1])*sqrt(Vector_r.end[0]*Vector_r.end[0]+Vector_r.end[1]*Vector_r.end[1])));
+    Angle_end=Angle_end*180/3.14;
 }
 
 //***************************************************************
@@ -959,6 +985,11 @@ void Track()
 //
 //}
 
+//void EM_show()
+//{
+//    lcd_showfloat();
+//}
+
 //***************************************************************
 //* 函数名称： Img_Deal
 //* 功能说明： 图像处理主函数
@@ -979,6 +1010,7 @@ void Img_Deal()
 	right_jump();
     Left_Apex();
     Right_Apex();
+    Angle_IMG();
 	Racing_Line();
 	//seekfree_sendimg_03x(UART_2,IMG_DATA,188,120);//传输处理后图像
 	//Track();

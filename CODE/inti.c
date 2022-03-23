@@ -23,7 +23,7 @@
 //***************************************************************
 void inti_all()
 {
-    //eeprom_erase_sector(0);
+    //eeprom_erase_sector(0);//出问题取消注释，清除数据即可
     systick_delay_ms(STM0,1000);//等待设备上电
     lcd_init();         //液晶初始化
     mt9v03x_init();     //摄像头初始化

@@ -39,6 +39,8 @@ int point_flag=1;
 uint32 Save[100];
 
 
+
+
 void drive_data_get()
 {
     gear_data[0]=duoji_kp0;
@@ -200,6 +202,8 @@ void data_change(int key_input)
                         speed_data[point_flag-1]-=0.01;
                     break;
                 case 4:
+                    eeprom_erase_sector(0);
+                    systick_delay_ms(STM0,1000);
                     Data_save();
                     lcd_showstr(0,1,"GO!");
                     systick_delay_ms(STM0,1000);
