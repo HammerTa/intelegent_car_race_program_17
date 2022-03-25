@@ -37,7 +37,7 @@ float CS_lim=0.95;
 float P_rate=0.1,D_rate=0;
 int e_lim=50;
 int ERROR[5]={0,0,0,0,0};
-//static int COUNT=0;
+static int COUNT=0;
 uint8 pwm0_flag=0;
 //================需要修改的================
 float duoji_kp,duoji_kd;    //舵机，用于打角转弯
@@ -102,10 +102,9 @@ void Control()
     if(stop==1)
     {
         time++;
-        if(time>=100)
+        if(time>=200)
         {
             pwm0_flag=1;
-            time=0;
         }
     }
     pwm_out();
@@ -163,17 +162,17 @@ void angle_deal()
       error=e_lim;
   }
   //================================
-//  ERROR[COUNT]=(int)(error*0.2);
-//  COUNT++;
-//  error=0;
-//  for(j=0;j<5;j++)
-//  {
-//    error+=ERROR[j];
-//  }
-//  if(COUNT>=5)
-//  {
-//    COUNT=0;
-//  }//滤波
+  ERROR[COUNT]=(int)(error*0.2);
+  COUNT++;
+  error=0;
+  for(j=0;j<5;j++)
+  {
+    error+=ERROR[j];
+  }
+  if(COUNT>=5)
+  {
+    COUNT=0;
+  }//滤波
   //======打角pd控制================
   PDChange(error);
   angle=(int)(duoji_kp*error+duoji_kd*(error-error0));

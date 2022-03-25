@@ -37,10 +37,11 @@ extern int line[120];
 extern int weight[240];
 extern int wild1;
 extern int wild10;
-extern float Angle_end;
+extern float ang,ang_l,ang_r;
 extern int L_lenth,R_lenth;
 
 extern unsigned char stop;
 extern unsigned char deal_flag;
 extern unsigned char IMG_DATA[ROW][COL];
+extern unsigned char fork_flag;
 #endif 

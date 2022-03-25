@@ -55,7 +55,7 @@
 //-----ÍÓÂİÒÇ
 
 //-----·äÃùÆ÷
-
+#define FMQ P33_10
 //-----À¶ÑÀ
 #define uart_blue UART_2
 #define VCAN_PORT UART_2

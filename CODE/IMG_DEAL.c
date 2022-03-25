@@ -7,6 +7,7 @@ int  dj_end;
 unsigned char stop=1;//停车标志位，置1表示停车
 unsigned char go=0;//直行标志位，1表示直行
 unsigned char deal_flag=0;//处理标志位
+unsigned char fork_flag=0;
 //int i = 0,j = 0;
 
 //********************************************
@@ -46,12 +47,13 @@ struct APEX
 
 struct Vector
 {
-    float star[2];
-    float end[2];
+    int star[2];
+    int end[2];
 };
 
 struct DIV RacingLine;//目标线路
 struct DIV left,right;//左右边线
+struct DIV forck_L,forck_R;//三叉判断线路
 struct APEX left_apex,right_apex;
 struct AG right_ag,left_ag;//寻找弯心所需变量
 struct Vector Vector_r,Vector_l;//起止点近似切线向量
@@ -69,7 +71,10 @@ int mid_row_L[240];
 int mid_row[240];
 int mid_flag=0;
 int L_lenth,R_lenth;
+//static int COUNT=0;
 float Angle_end;
+float Angle_End[10]={0};
+float ang_l,ang_r,ang;//三叉角度判断
 //*********************************************
 
 //**********************************************
@@ -94,15 +99,15 @@ float Angle_end;
 //--------------------------
 //摄像头前瞻量，根据摄像头位置设置，数字代表权重大小，例如第1个数为1代表第0行的权重为1
 int weight[240]={
-3,3,3,3,3,3,3,3,3,3,//1-10
-4,4,4,4,4,4,4,4,4,4,//11-20
-5,5,5,5,5,5,5,5,5,5,//21-30
+1,1,1,1,1,1,1,1,1,1,//1-10
+3,3,3,3,3,3,3,3,3,3,//11-20
+2,2,2,2,2,2,2,2,2,2,//21-30
 4,4,4,4,4,4,4,4,4,4,//31-40
-2,2,2,2,2,2,2,2,2,2,//41-50
-1,1,1,1,1,1,1,1,1,1,//51-60
-0,0,0,0,0,0,0,0,0,0,//61-70
-0,0,0,0,0,0,0,0,0,0,//71-80
-0,0,0,0,0,0,0,0,0,0,//81-90
+4,4,4,4,4,4,4,4,4,4,//41-50
+6,6,6,6,6,6,6,6,6,6,//51-60
+6,6,6,6,6,6,6,6,6,6,//61-70
+1,1,1,1,1,1,1,1,1,1,//71-80
+1,1,1,1,1,1,1,1,1,1,//81-90
 0,0,0,0,0,0,0,0,0,0,//91-100
 0,0,0,0,0,0,0,0,0,0,//101-110
 0,0,0,0,0,0,0,0,0,0,//111-120
@@ -186,6 +191,10 @@ void Deal_Init()
 		left.Col[pin]=254; 
 		right.Row[pin]=254;
 		right.Col[pin]=254;
+		forck_L.Row[pin]=254;
+		forck_L.Col[pin]=254;
+        forck_R.Row[pin]=254;
+        forck_R.Col[pin]=254;
                 RacingLine.Row[pin]=254;
                 RacingLine.Col[pin]=254;
                 middleline[pin]=254;
@@ -194,8 +203,9 @@ void Deal_Init()
                 mid_row_R[pin]=254;
                 mid_row_L[pin]=254;
                 mid_row[pin]=254;
-	}  
-    	left_apex.Mark=254;
+	}
+    gpio_set(FMQ,0);
+    left_apex.Mark=254;
 	right_apex.Mark=254;
 	Vector_r.star[0]=254;
 	Vector_r.star[1]=254;
@@ -207,6 +217,10 @@ void Deal_Init()
     Vector_l.end[1]=254;
     L_lenth=0;
     R_lenth=0;
+    fork_flag=0;
+    ang_l=0;
+    ang_r=0;
+    ang=0;
 }
 
 ///***************************************************************
@@ -344,6 +358,7 @@ void left_jump()
 				whitecounter = 0;
 				left.Row[pin] = row;
 				left.Col[pin] = col;
+				IMG_DATA[row][col] = RED_IMG;
 				L_lenth++;
 				break;
 			}
@@ -428,6 +443,7 @@ void right_jump()
 				whitecounter = 0;
 				right.Row[pin] = row;
 				right.Col[pin] = col;
+				IMG_DATA[row][col] = BLUE_IMG;
 				R_lenth++;
 				break;
 			}
@@ -882,26 +898,55 @@ void protect()
 //* 函数返回：
 //* 备 注：
 //***************************************************************
-void Angle_IMG()
+//void Angle_IMG()
+//{
+//    float diancheng,mocheng;
+//    if(L_lenth<10)
+//    {
+//        return;
+//    }
+//    if(R_lenth<10)
+//    {
+//        return;
+//    }
+//    Vector_l.star[0]=(float)left.Col[5]-left.Col[1];//左起点向量x
+//    Vector_l.star[1]=(float)left.Row[5]-left.Row[1];//左起点向量y
+//    Vector_l.end[0]=(float)left.Col[L_lenth-1]-left.Col[L_lenth-8];//左终点向量x
+//    Vector_l.end[1]=(float)left.Row[L_lenth-1]-left.Row[L_lenth-8];//左终点向量y
+//    Vector_r.star[0]=(float)right.Col[5]-right.Col[1];//左起点向量x
+//    Vector_r.star[1]=(float)right.Row[5]-right.Row[1];//左起点向量y
+//    Vector_r.end[0]=(float)right.Col[L_lenth-1]-right.Col[L_lenth-8];//左终点向量x
+//    Vector_r.end[1]=(float)right.Row[L_lenth-1]-right.Row[L_lenth-8];//左终点向量y
+//    diancheng=0.1*Vector_l.end[0]*Vector_r.end[0]+Vector_l.end[1]*Vector_r.end[1];
+//    mocheng=0.1*(Vector_l.end[0]*Vector_l.end[0]+Vector_l.end[1]*Vector_l.end[1])*(Vector_r.end[0]*Vector_r.end[0]+Vector_r.end[1]*Vector_r.end[1]);
+//    Angle_end=diancheng/sqrt(mocheng);
+//    Angle_end=Angle_end*180/3.14;
+//    Angle_End[COUNT]=Angle_end*0.1;
+//    COUNT++;
+//    Angle_end=0;
+//    for(int j=0;j<10;j++)
+//    {
+//      Angle_end+=Angle_End[j];
+//    }
+//    if(COUNT>=10)
+//    {
+//      COUNT=0;
+//    }//滤波
+//    if(Angle_end<0)
+//    {
+//        Angle_end=0-Angle_end;
+//    }
+//}
+
+//***************************************************************
+//* 函数名称： angle
+//* 功能说明： 边线各角度数据
+//* 函数返回：
+//* 备 注：
+//***************************************************************
+void Conner_cheack()
 {
-    if(L_lenth<10)
-    {
-        return;
-    }
-    if(R_lenth<10)
-    {
-        return;
-    }
-    Vector_l.star[0]=(float)left.Col[5]-left.Col[1];//左起点向量x
-    Vector_l.star[1]=(float)left.Row[5]-left.Row[1];//左起点向量y
-    Vector_l.end[0]=(float)left.Col[L_lenth-1]-left.Col[L_lenth-5];//左终点向量x
-    Vector_l.end[1]=(float)left.Row[L_lenth-1]-left.Row[L_lenth-5];//左终点向量y
-    Vector_r.star[0]=(float)right.Col[5]-right.Col[1];//左起点向量x
-    Vector_r.star[1]=(float)right.Row[5]-right.Row[1];//左起点向量y
-    Vector_r.end[0]=(float)right.Col[L_lenth-1]-right.Col[L_lenth-5];//左终点向量x
-    Vector_r.end[1]=(float)right.Row[L_lenth-1]-right.Row[L_lenth-5];//左终点向量y
-    Angle_end=acos((Vector_l.end[0]*Vector_r.end[0]+Vector_l.end[1]*Vector_r.end[1])/(sqrt(Vector_l.end[0]*Vector_l.end[0]+Vector_l.end[1]*Vector_l.end[1])*sqrt(Vector_r.end[0]*Vector_r.end[0]+Vector_r.end[1]*Vector_r.end[1])));
-    Angle_end=Angle_end*180/3.14;
+
 }
 
 //***************************************************************
@@ -921,7 +966,7 @@ void Roundabout_Deal()
 //* 功能说明： T弯处理函数
 //* 函数返回：
 //* 备 注：
-//***************************************************************
+//**************************************************************
 void T_Conner_Deal()
 {
 
@@ -936,7 +981,121 @@ void T_Conner_Deal()
 //***************************************************************
 void Fork_Deal()
 {
-
+    int i,j,pin;
+    int F_L_flag=0;
+    int F_R_flag=0;
+    for (i=70;i>20;i--)
+    {
+        for(j=COL/2-20;j<COL/2+20;j++)
+        {
+            if(IMG_DATA[i][j]==WHITE_IMG && IMG_DATA[i][j+1]==BLACK_IMG)
+            {
+                IMG_DATA[i][j+1]=RED_IMG;
+                forck_L.Row[0]=i;
+                forck_L.Col[0]=j+1;
+                F_L_flag=1;
+            }
+            if(IMG_DATA[i][j]==BLACK_IMG && IMG_DATA[i][j+1]==WHITE_IMG)
+            {
+                IMG_DATA[i][j+1]=BLUE_IMG;
+                forck_R.Row[0]=i;
+                forck_R.Col[0]=j-1;
+                F_R_flag=1;
+            }
+        }
+        if(F_L_flag==0 && F_R_flag==1)
+        {
+            return;
+        }
+        if(F_R_flag==0 && F_L_flag==1)
+        {
+            return;
+        }
+        if(F_R_flag==1 && F_L_flag==1)
+        {
+            break;
+        }
+    }
+    int find;
+    int row,col;
+    int colmin,colmax;
+    //下为左
+    pin=1;
+    for(row=forck_L.Row[0] - pin;pin<5;pin++)
+    {
+        find = 0;
+        row = forck_L.Row[0] - pin;
+        colmin = forck_L.Col[pin - 1] - 10;
+        colmax = forck_L.Col[pin - 1] + 10;
+        for(col = colmin;col <= colmax;col++)
+        {
+            if(col < COL - 5 && col > -1)
+            {
+                if(IMG_DATA[row][col] == WHITE_IMG && IMG_DATA[row][col + 1] == WHITE_IMG)
+                {
+                    if(IMG_DATA[row][col + 2] == BLACK_IMG && IMG_DATA[row][col + 3] == BLACK_IMG)
+                    {
+                        forck_L.Row[pin] = row;
+                        forck_L.Col[pin] = col + 2;
+                        IMG_DATA[row][col + 2] = RED_IMG;
+                        find = 1;
+                        break;
+                    }
+                }
+            }
+        }
+        if(find == 0)
+        {
+            break;
+        }
+    }
+    //下为右
+    pin=1;
+    for(row=right.Row[0] - pin;pin<5;pin++)
+    {
+        find = 0;
+        row = forck_R.Row[0] - pin;
+        colmin = forck_R.Col[pin - 1] - 10;
+        colmax = forck_R.Col[pin - 1] + 10;
+        for(col = colmax;col >= colmin;col--)
+        {
+            if(col < COL + 1 && col > 5)
+            {
+                if(IMG_DATA[row][col] == WHITE_IMG && IMG_DATA[row][col - 1] == WHITE_IMG)
+                {
+                    if(IMG_DATA[row][col - 2] == BLACK_IMG && IMG_DATA[row][col - 3] == BLACK_IMG)
+                    {
+                        forck_R.Row[pin] = row;
+                        forck_R.Col[pin] = col - 2;
+                        IMG_DATA[row][col - 2] = BLUE_IMG;
+                        find = 1;
+                        break;
+                    }
+                }
+            }
+        }
+        if(find == 0)
+        {
+            break;
+        }
+    }
+    int V_L[2],V_R[2];
+    V_L[0]=forck_L.Row[4]-forck_L.Row[0];
+    V_L[1]=forck_L.Col[4]-forck_L.Col[0];
+    V_R[0]=forck_R.Row[4]-forck_R.Row[0];
+    V_R[1]=forck_R.Col[4]-forck_R.Col[0];
+    ang_l=atan(1.0*V_L[0]/V_L[1]);
+    ang_r=atan(1.0*V_R[0]/V_R[1]);
+    //ang_l=1.0*V_L[0]/V_L[1];
+    //ang_r=1.0*V_R[0]/V_R[1];
+    ang_l=ang_l*180/3.14;
+    ang_r=ang_r*180/3.14+180;
+    ang=ang_r-ang_l;
+    if(ang>140)
+    {
+        //gpio_set(FMQ,1);
+        fork_flag=1;
+    }
 }
 
 //***************************************************************
@@ -975,6 +1134,160 @@ void Track()
 }
 
 //***************************************************************
+//* 函数名称： RacingLine_L
+//* 功能说明： 左边线寻到底，但是更偏(1/3)
+//* 函数返回：
+//* 备 注：
+//***************************************************************
+void RacingLine_L()
+{
+    int pin,i;
+    int row,col;
+    int flag;
+    int mark;
+    int l_flag,r_flag;
+    l_flag=0;
+    r_flag=0;
+    i=0;
+    mark=L_lenth+(115-left.Row[0]);
+    if(mark>240) mark=240;
+    row=left.Row[0];
+    for(pin=0;pin<240;pin++)
+    {
+        flag=119-pin;
+        if(flag>left.Row[0])
+        {
+            middleline[pin]=left.Col[0]+TrackWild[row]/2;
+            col=middleline[pin];
+            IMG_DATA[flag][col]=GREEN_IMG;
+            mid_row[pin]=flag;
+        }
+        else
+        {
+            row=left.Row[i];
+            col=left.Col[i]+TrackWild[row]/2;
+            middleline[pin]=col;
+            mid_row[pin]=row;
+            i++;
+            if(row>5&&row<ROW-5)
+            {
+                if(col>5&&col<COL-5)
+                {
+                    IMG_DATA[row][col]=GREEN_IMG;
+                }
+            }
+        }
+        if(left.Row[pin+1]==254) break;
+    }
+    return;
+}
+
+//***************************************************************
+//* 函数名称： RacingLine_R
+//* 功能说明： 右边线寻到底，但是更偏(1/3)
+//* 函数返回：
+//* 备 注：
+//***************************************************************
+void RacingLine_R()
+{
+    int pin,i;
+    int row,col;
+    int flag;
+    int mark;
+    int l_flag,r_flag;
+    l_flag=0;
+    r_flag=0;
+    i=0;
+    if(left_flag==0&&right_flag==0)
+    {
+      return;
+    }
+        mark=R_lenth+(115-right.Row[0]);
+        if(mark>240) mark=240;
+        row=right.Row[0];
+        for(pin=0;pin<mark;pin++)
+        {
+        flag=119-pin;
+        if(flag>right.Row[0])
+        {
+          middleline[pin]=right.Col[0]-TrackWild[row]/2;
+          col=middleline[pin];
+          mid_row[pin]=flag;
+          IMG_DATA[flag][col]=GREEN_IMG;
+        }
+        else
+        {
+          row=right.Row[i];
+          col=right.Col[i]-TrackWild[row]/2;
+          middleline[pin]=col;
+          mid_row[pin]=row;
+          i++;
+          if(row>5&&row<ROW-5)
+          {
+            if(col>5&&col<COL-5)
+            {
+                IMG_DATA[row][col]=GREEN_IMG;
+            }
+          }
+        }
+    }
+    return;
+}
+
+//***************************************************************
+//* 函数名称： Racing_Line_Fork_L
+//* 功能说明： 三叉巡线策略
+//* 函数返回：
+//* 备 注：
+//***************************************************************
+void Racing_Line_Fork_L()
+{
+    int pin,i;
+    int row,col;
+    int flag;
+    int mark;
+    int l_flag,r_flag;
+    l_flag=0;
+    r_flag=0;
+    i=0;
+    row=forck_L.Row[0];
+    for(pin=0;pin<240;pin++)
+    {
+        flag=119-pin;
+        if(flag>forck_L.Row[0])
+        {
+            middleline[pin]=forck_L.Col[0]-TrackWild[row]/2;
+            col=middleline[pin];
+            mid_row[pin]=flag;
+            IMG_DATA[flag][col]=GREEN_IMG;
+        }
+        else
+        {
+              row=forck_L.Row[i];
+              col=forck_L.Col[i]-TrackWild[row]/2;
+              middleline[pin]=col;
+              mid_row[pin]=row;
+              i++;
+              if(row>5&&row<ROW-5)
+              {
+                    if(col>5&&col<COL-5)
+                    {
+                        IMG_DATA[row][col]=GREEN_IMG;
+                    }
+              }
+        }
+        if(forck_L.Row[pin+1]==254) break;
+     }
+    return;
+}
+
+void RaceLine()
+{
+    if(fork_flag==1) Racing_Line_Fork_L();
+    else Racing_Line();
+}
+
+//***************************************************************
 //* 函数名称： FPS
 //* 功能说明： 实际帧数计算
 //* 函数返回：
@@ -1010,8 +1323,9 @@ void Img_Deal()
 	right_jump();
     Left_Apex();
     Right_Apex();
-    Angle_IMG();
-	Racing_Line();
+    //Angle_IMG();
+    Fork_Deal();
+    RaceLine();
 	//seekfree_sendimg_03x(UART_2,IMG_DATA,188,120);//传输处理后图像
 	//Track();
 	//lcd_displayimage032_zoom(IMG_DATA,188,120,160,128);//图像显示
