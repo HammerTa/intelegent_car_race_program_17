@@ -3,7 +3,12 @@
 #include "common.h"
 #include "ZZK_Threshold.h"
 
-
+typedef enum
+{
+    NO_FORK,
+    IN_FORK,
+    OUT_FORK,
+}FORK_enum;
 
 //----------------函数定义区--------------
 void Img_Deal(void);

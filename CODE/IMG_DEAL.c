@@ -7,7 +7,8 @@ int  dj_end;
 unsigned char stop=1;//停车标志位，置1表示停车
 unsigned char go=0;//直行标志位，1表示直行
 unsigned char deal_flag=0;//处理标志位
-unsigned char fork_flag=0;
+unsigned char fork_flag=0;//三叉标志位
+FORK_enum Fork_Flag=NO_FORK;
 //int i = 0,j = 0;
 
 //********************************************
@@ -22,6 +23,7 @@ int left_end = 0;
 int middle_start = 0;	//中线起点行
 int middle_end = 0;
 int middleline[240];
+int middleline0[240];//上一中线
 int middleline_l[240];
 int middleline_r[240];
 int SUM=0;
@@ -54,6 +56,7 @@ struct Vector
 struct DIV RacingLine;//目标线路
 struct DIV left,right;//左右边线
 struct DIV forck_L,forck_R;//三叉判断线路
+struct DIV forck_line_L,forck_line_R;//三叉补线线路
 struct APEX left_apex,right_apex;
 struct AG right_ag,left_ag;//寻找弯心所需变量
 struct Vector Vector_r,Vector_l;//起止点近似切线向量
@@ -106,10 +109,10 @@ int weight[240]={
 4,4,4,4,4,4,4,4,4,4,//41-50
 6,6,6,6,6,6,6,6,6,6,//51-60
 6,6,6,6,6,6,6,6,6,6,//61-70
-1,1,1,1,1,1,1,1,1,1,//71-80
-1,1,1,1,1,1,1,1,1,1,//81-90
-0,0,0,0,0,0,0,0,0,0,//91-100
-0,0,0,0,0,0,0,0,0,0,//101-110
+3,3,3,3,3,3,3,3,3,3,//71-80
+3,3,3,3,3,3,3,3,3,3,//81-90
+1,1,1,1,1,1,1,1,1,1,//91-100
+1,1,1,1,1,1,1,1,1,1,//101-110
 0,0,0,0,0,0,0,0,0,0,//111-120
 0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,
@@ -127,13 +130,13 @@ int weight[240]={
 
 //--------------------------
 int TrackWild[120]={
-        29,30,31,32,33,34,35,36,37,38,40,41,42,43,44,45,46,47,48,
-        49,51,52,53,54,55,56,57,58,59,60,62,63,64,65,66,67,68,69,
-        70,72,73,74,75,76,77,78,79,80,81,83,84,85,86,87,88,89,90,
-        91,92,94,95,96,97,98,99,100,101,102,103,105,106,107,108,109,110,111,
-        112,113,114,116,117,118,119,120,121,122,123,124,125,127,128,129,130,131,132,
-        133,134,135,136,138,139,140,141,142,143,144,145,146,147,149,150,151,152,153,
-        154,155,156,157,158,160};
+        16,17,19,20,21,22,23,25,26,27,28,29,31,32,33,34,35,37,38,
+        39,40,41,43,44,45,46,47,49,50,51,52,53,55,56,57,58,59,61,
+        62,63,64,65,67,68,69,70,71,73,74,75,76,77,79,80,81,82,83,
+        85,86,87,88,89,91,92,93,94,95,97,98,99,100,101,103,104,105,106,
+        107,109,110,111,112,113,115,116,117,118,119,121,122,123,124,125,127,128,129,
+        130,131,133,134,135,136,137,139,140,141,142,143,145,146,147,148,149,151,152,
+        153,154,155,157,158,159};
 
 
 //***************************************************************
@@ -322,7 +325,7 @@ void left_jump()
 		{
 			break;
 		}
-        }
+    }
 	for(pin = 5;pin < 240;pin++)
 	{
                 if(left.Row[4] == 254)
@@ -331,7 +334,7 @@ void left_jump()
 		}
 		row = left.Row[pin - 1];
 		col = left.Col[pin - 1];
-		if(row < 30 || col < 5 || col > COL-5)
+		if(row < 10 || col < 5 || col > COL-5)
 		{
 			break;
 		}
@@ -416,7 +419,7 @@ void right_jump()
 		}
 		row = right.Row[pin - 1];
 		col = right.Col[pin - 1];
-		if(row < 30 || col < 5 || col > COL-5)
+		if(row < 10 || col < 5 || col > COL-5)
 		{
 			break;
 		}
@@ -593,138 +596,6 @@ void Right_Apex()
 //***************************************************************
 void Racing_Line()
 {
-//    int pin,i;
-//    int row,col;
-//    int flag;
-//    int mark;
-//    int l_flag,r_flag;
-//    l_flag=0;
-//    r_flag=0;
-//    i=0;
-//    if(left_flag==0&&right_flag==0)
-//    {
-//      return;
-//    }
-//    if(left_flag==0)
-//    {
-//        mark=right_apex.Mark+(115-right.Row[0]);
-//        row=right.Row[0];
-//        for(pin=0;pin<mark;pin++)
-//        {
-//            flag=119-pin;
-//            if(flag>right.Row[0])
-//            {
-//              middleline[pin]=right.Col[0]-TrackWild[row]/2;
-//              col=middleline[pin];
-//              mid_row[pin]=flag;
-//            }
-//            else
-//            {
-//
-//              row=right.Row[i];
-//              col=right.Col[i]-TrackWild[row]/2;
-//              middleline[pin]=col;
-//              mid_row[pin]=row;
-//              i++;
-//            }
-//        }
-//        mid_flag++;
-//        return;
-//    }
-//    else if(right_flag==0)
-//    {
-//      mark=left_apex.Mark+(115-left.Row[0]);
-//      row=left.Row[0];
-//      for(pin=0;pin<mark;pin++)
-//        {
-//          flag=119-pin;
-//          if(flag>left.Row[0])
-//          {
-//            middleline[pin]=left.Col[0]+TrackWild[row]/2;
-//              col=middleline[pin];
-//              mid_row[pin]=flag;
-//          }
-//          else
-//          {
-//            row=left.Row[i];
-//            col=left.Col[i]+TrackWild[row]/2;
-//            middleline[pin]=col;
-//            mid_row[pin]=row;
-//            i++;
-//          }
-//        }
-//      mid_flag++;
-//        return;
-//    }//上为丢线，以下为源程序改进，原版本于ADS查
-//    else
-//    {
-//        //以左边线找中线
-//        mark=left_apex.Mark+(115-left.Row[0]);
-//        row=left.Row[0];
-//        for(pin=0;pin<mark;pin++)
-//        {
-//            flag=119-pin;
-//            if(flag>left.Row[0])
-//            {
-//                middleline_l[pin]=left.Col[0]+TrackWild[row]/2;
-//                col=middleline_l[pin];
-//                mid_row_L[pin]=flag;
-//           }
-//            else
-//            {
-//                row=left.Row[i];
-//                 col=left.Col[i]+TrackWild[row]/2;
-//                middleline_l[pin]=col;
-//                mid_row_L[pin]=row;
-//                i++;
-//             }
-//        }
-//        //以右边线找中线
-//        i=0;
-//        mark=right_apex.Mark+(115-right.Row[0]);
-//        row=right.Row[0];
-//        for(pin=0;pin<mark;pin++)
-//        {
-//          flag=119-pin;
-//          if(flag>right.Row[0])
-//          {
-//            middleline_r[pin]=right.Col[0]-TrackWild[row]/2;
-//              col=middleline_r[pin];
-//              mid_row_R[pin]=flag;
-//          }
-//          else
-//          {
-//            row=right.Row[i];
-//            col=right.Col[i]-TrackWild[row]/2;
-//            middleline_r[pin]=col;
-//            mid_row_R[pin]=row;
-//            i++;
-//          }
-//          r_flag++;
-//        }
-//    }
-//    if(l_flag<r_flag)
-//    {
-//        mid_flag=r_flag;
-//        for(i=0;i<r_flag;i++)
-//        {
-//            mid_row[i]=mid_row_R[i];
-//            if(i<l_flag) middleline[i]=(middleline_r[i]+middleline_l[i])/2;
-//            else middleline[i]=middleline_r[i];
-//        }
-//    }
-//    else
-//    {
-//        mid_flag=l_flag;
-//        for(i=0;i<l_flag;i++)
-//        {
-//            mid_row[i]=mid_row_L[i];
-//            if(i<r_flag) middleline[i]=(middleline_r[i]+middleline_l[i])/2;
-//            else middleline[i]=middleline_l[i];
-//        }
-//    }
-
-
         int pin,i;
         int row,col;
         int flag;
@@ -984,9 +855,24 @@ void Fork_Deal()
     int i,j,pin;
     int F_L_flag=0;
     int F_R_flag=0;
-    for (i=70;i>20;i--)
+    int row_L=left_apex.Apex_Row,col_L=left_apex.Apex_Col;
+    int row_R=right_apex.Apex_Row,col_R=right_apex.Apex_Col;
+    if(row_L<40||col_L>60)
     {
-        for(j=COL/2-20;j<COL/2+20;j++)
+        Fork_Flag=NO_FORK;
+        gpio_set(FMQ,0);
+        return;
+    }
+    if(row_R<40||col_R<60)
+    {
+        Fork_Flag=NO_FORK;
+        gpio_set(FMQ,0);
+        return;
+    }
+    for (i=50;i>35;i--)
+    {
+        int min=COL/2-20,max=COL/2+20;
+        for(j=min;j<max;j++)
         {
             if(IMG_DATA[i][j]==WHITE_IMG && IMG_DATA[i][j+1]==BLACK_IMG)
             {
@@ -1011,6 +897,7 @@ void Fork_Deal()
         {
             return;
         }
+        if(forck_R.Row[0]<forck_L.Row[0]) return;//防误判2
         if(F_R_flag==1 && F_L_flag==1)
         {
             break;
@@ -1091,10 +978,10 @@ void Fork_Deal()
     ang_l=ang_l*180/3.14;
     ang_r=ang_r*180/3.14+180;
     ang=ang_r-ang_l;
-    if(ang>140)
+    if(ang>150 && ang<180)
     {
-        //gpio_set(FMQ,1);
         fork_flag=1;
+        Fork_Flag=IN_FORK;
     }
 }
 
@@ -1236,7 +1123,7 @@ void RacingLine_R()
 
 //***************************************************************
 //* 函数名称： Racing_Line_Fork_L
-//* 功能说明： 三叉巡线策略
+//* 功能说明： 三叉巡线策略，补右寻左
 //* 函数返回：
 //* 备 注：
 //***************************************************************
@@ -1245,27 +1132,34 @@ void Racing_Line_Fork_L()
     int pin,i;
     int row,col;
     int flag;
-    int mark;
     int l_flag,r_flag;
     l_flag=0;
     r_flag=0;
     i=0;
+    gpio_set(FMQ,1);
     row=forck_L.Row[0];
+    if(Fork_Flag==IN_FORK && fork_flag==0)
+    {
+        RacingLine_L();
+        return;
+    }
     for(pin=0;pin<240;pin++)
     {
         flag=119-pin;
         if(flag>forck_L.Row[0])
         {
-            middleline[pin]=forck_L.Col[0]-TrackWild[row]/2;
+            middleline[pin]=forck_L.Col[0]-TrackWild[row]*0.75;
             col=middleline[pin];
+            middleline0[pin]=middleline[pin];
             mid_row[pin]=flag;
             IMG_DATA[flag][col]=GREEN_IMG;
         }
         else
         {
               row=forck_L.Row[i];
-              col=forck_L.Col[i]-TrackWild[row]/2;
+              col=forck_L.Col[i]-TrackWild[row]*0.75;
               middleline[pin]=col;
+              middleline0[pin]=middleline[pin];
               mid_row[pin]=row;
               i++;
               if(row>5&&row<ROW-5)
@@ -1283,7 +1177,7 @@ void Racing_Line_Fork_L()
 
 void RaceLine()
 {
-    if(fork_flag==1) Racing_Line_Fork_L();
+    if(Fork_Flag==IN_FORK) Racing_Line_Fork_L();
     else Racing_Line();
 }
 
@@ -1311,6 +1205,7 @@ void RaceLine()
 //***************************************************************
 void Img_Deal()
 { 
+    if(stop==1) return;
     Deal_Init();
     InitData();
     deal_flag=1;

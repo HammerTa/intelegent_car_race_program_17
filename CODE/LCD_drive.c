@@ -36,6 +36,7 @@ int show_value=0;
 uint8 show_img=0;
 int title_flag=0;
 int point_flag=1;
+int key_time=0;//按键时间
 uint32 Save[100];
 
 
@@ -91,6 +92,7 @@ void show()
             break;
         case 4:
             lcd_showstr(0,0,"Ready?");
+            lcd_showint32(0,7,point_flag,5);
             break;
     }
 }
@@ -281,10 +283,21 @@ void Read_data()
     speed_data[1]=0.1*(float)Save[11];
 }
 
+void long_prass_1(int key_press)
+{
+    if(key_press==2) key_time++;
+    if(key_time>=4)
+    {
+        key_value=1;
+        key_time=0;
+    }
+}//三号长按
+
 void key_control()
 {
 //    drive_data_get();
     key_scan();
+    long_prass_1(key_value);
     data_change(key_value);
     show();
 }

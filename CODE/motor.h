@@ -10,6 +10,7 @@
 
 extern int speed_l;
 extern int speed_r;
+extern int setspeed_L,setspeed_R;
 extern int error;
 extern float duoji_kp,duoji_kd;    //舵机，用于打角转弯
 extern float duoji_kp0,duoji_kd0;  //直道pd

@@ -98,8 +98,8 @@ void bluesend (void)
    //蓝牙传数 山外
       bluetooth[0]=(int)speed_l;
       bluetooth[1]=(int)speed_r;
-      bluetooth[2]=(int)right_pwm_out;
-      bluetooth[3]=(int)left_pwm_out;
+      bluetooth[2]=(int)setspeed_L;
+      bluetooth[3]=(int)setspeed_R;
       bluetooth[4]=(int)fork_flag;
       bluetooth[5]=(int)ang;
       bluetooth[6]=(int)ang_l;

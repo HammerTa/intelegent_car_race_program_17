@@ -47,7 +47,7 @@ float chasu,chasu_k;      //差速，用于转弯，低速时不需要
 
 float left_motor_kp,left_motor_ki,left_motor_kd;    //电机pid用于稳定控制轮子转速
 float right_motor_kp,right_motor_ki,right_motor_kd;
-int setspeed=0;     //别给太大，一开始可以给20
+int setspeed;     //别给太大，一开始可以给20
 int time=0;
 int Mid_row;
 ///***************************************************************
@@ -217,7 +217,7 @@ void motor_DiffSpeed()
     {
         setspeed=0;
     }
-  chasu=(chasu_k*(float)fabs(error))/(2.0+chasu_k*(float)fabs(error))*(float)setspeed;//差速计算公式
+    chasu=(chasu_k*fabs(1.0*error))/(2+chasu_k*fabs(1.0*error))*setspeed;//差速计算公式
   if(error==0)
   {
     setspeed_L=setspeed;
@@ -229,8 +229,8 @@ void motor_DiffSpeed()
     {
      chasu=CS_lim*setspeed;
     }
-    setspeed_L=(int)(setspeed+chasu/2);
-    setspeed_R=(int)(setspeed-chasu/2);
+    setspeed_L=(int)(setspeed);//-chasu);
+    setspeed_R=(int)(setspeed+chasu);
   }
   else
   {
@@ -238,8 +238,8 @@ void motor_DiffSpeed()
     {
      chasu=CS_lim*setspeed;
     }
-    setspeed_L=(int)(setspeed-chasu/2);
-    setspeed_R=(int)(setspeed+chasu/2);
+    setspeed_L=(int)(setspeed+chasu);
+    setspeed_R=(int)(setspeed);//-chasu);
   }
 }
 
@@ -308,8 +308,8 @@ void motor_pid()
 //***************************************************************
 void pwm_out()
 {
-//    left_pwm_out=2500;
-//    right_pwm_out=2500;//如果注释取消 则为开环
+    //left_pwm_out=2500;
+    //right_pwm_out=2500;//如果注释取消 则为开环
     if(pwm0_flag==1)
     {
         left_pwm_out=0;
