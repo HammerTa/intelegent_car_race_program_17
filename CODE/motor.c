@@ -35,7 +35,7 @@ int error0=0;
 int lim_pwm=9000;
 float CS_lim=0.95;
 float P_rate=0.1,D_rate=0;
-int e_lim=50;
+int e_lim=100;
 int ERROR[5]={0,0,0,0,0};
 static int COUNT=0;
 uint8 pwm0_flag=0;
@@ -161,6 +161,7 @@ void angle_deal()
   {
       error=e_lim;
   }
+  if(fork_turn==1) error=-40;
   //================================
   ERROR[COUNT]=(int)(error*0.2);
   COUNT++;

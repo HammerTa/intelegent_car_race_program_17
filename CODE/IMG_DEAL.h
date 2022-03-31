@@ -49,4 +49,5 @@ extern unsigned char stop;
 extern unsigned char deal_flag;
 extern unsigned char IMG_DATA[ROW][COL];
 extern unsigned char fork_flag;
+extern unsigned char fork_turn;
 #endif 

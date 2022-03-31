@@ -8,6 +8,7 @@ unsigned char stop=1;//停车标志位，置1表示停车
 unsigned char go=0;//直行标志位，1表示直行
 unsigned char deal_flag=0;//处理标志位
 unsigned char fork_flag=0;//三叉标志位
+unsigned char fork_turn=0;//1左，2右
 FORK_enum Fork_Flag=NO_FORK;
 //int i = 0,j = 0;
 
@@ -218,6 +219,7 @@ void Deal_Init()
     Vector_l.star[1]=254;
     Vector_l.end[0]=254;
     Vector_l.end[1]=254;
+    fork_turn=0;
     L_lenth=0;
     R_lenth=0;
     fork_flag=0;
@@ -225,6 +227,98 @@ void Deal_Init()
     ang_r=0;
     ang=0;
 }
+
+ ///***************************************************************
+ //* 函数名称： Black_White_Zone
+ //* 功能说明： 黑白区，扫描区域内黑白点
+ //* 函数返回： 0，1（黑区或白区）
+ //* 备 注：    左上到右下,x列,y行
+ //***************************************************************
+ int Black_White_Zone(int x1,int y1,int x2,int y2)
+ {
+     int row,col;
+     int point=0;
+     int Black_point=0;
+     int White_point=0;
+     float B_percent,W_percent;
+     float k1,k2;
+     k1=1.0*(y2-y1)/(x2-x1);
+     k2=1.0*(y2-y1)/(x1-x2);
+     for(col=x1;col<x2;col++)
+     {
+         row=(int)(k1*(col-x1)+y1);
+         if(IMG_DATA[row][col]==BLACK_IMG) Black_point++;
+         else White_point++;
+         point++;
+     }
+     for(col=x1;col<x2;col++)
+     {
+         row=(int)(k1*(col-x1)+y2);
+         if(IMG_DATA[row][col]==BLACK_IMG) Black_point++;
+         else White_point++;
+         point++;
+     }
+     row=(y1+y2)/2;
+     for(col=x1;col<x2;col++)
+     {
+         if(IMG_DATA[row][col]==BLACK_IMG) Black_point++;
+         else White_point++;
+         point++;
+     }
+     col=(x1+x2)/2;
+     for(row=y1;row<y2;row++)
+     {
+         if(IMG_DATA[row][col]==BLACK_IMG) Black_point++;
+         else White_point++;
+         point++;
+     }
+     B_percent=1.0*Black_point/point;
+     W_percent=1.0*White_point/point;
+     if(B_percent>0.6) return 1;
+     else if(W_percent>0.6) return 2;
+     else return 0;
+ }
+
+ ///***************************************************************
+ //* 函数名称： Cross_col
+ //* 功能说明： 贯通列，辅助判断直道
+ //* 函数返回： 白点占比（float）
+ //* 备 注：
+ //***************************************************************
+ float Cross_col()
+ {
+     float W_percent=0;
+     int i,j;
+     int White_point=0;
+     int Black_point=0;
+     int point=600;
+     int col[5]={84,90,94,98,102};
+     for(i=0;i<5;i++)
+     {
+         for(j=119;j>0;j--)
+         {
+             if(IMG_DATA[j][col[i]]==WHITE_IMG)
+                 White_point++;
+             else
+             {
+                 Black_point++;
+                 if(Black_point>6)
+                 {
+                     Black_point=0;
+                     break;
+                 }
+             }
+         }
+     }
+     W_percent=1.0*White_point/point;
+     return W_percent;
+ }
+
+
+ void S_jugde()
+ {
+
+ }
 
 ///***************************************************************
 //* 函数名称： 
@@ -305,7 +399,7 @@ void left_jump()
 		colmax = left.Col[pin - 1] + 10;
 		for(col = colmin;col <= colmax;col++)
 		{
-			if(col < COL - 5 && col > -1)
+			if(col < COL - 5 && col > 5)
 			{
 				if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col + 1] == BLACK_IMG)
 				{
@@ -328,13 +422,13 @@ void left_jump()
     }
 	for(pin = 5;pin < 240;pin++)
 	{
-                if(left.Row[4] == 254)
+        if(left.Row[4] == 254)
 		{
 			break;
 		}
 		row = left.Row[pin - 1];
 		col = left.Col[pin - 1];
-		if(row < 10 || col < 5 || col > COL-5)
+		if(row < 10 || col < 10 || col > COL-10)
 		{
 			break;
 		}
@@ -390,7 +484,7 @@ void right_jump()
 		colmax = right.Col[pin - 1] + 10;
 		for(col = colmax;col >= colmin;col--)
 		{
-			if(col < COL + 1 && col > 5)
+			if(col < COL - 5 && col > 5)
 			{
 				if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col - 1] == BLACK_IMG)
 				{
@@ -419,7 +513,7 @@ void right_jump()
 		}
 		row = right.Row[pin - 1];
 		col = right.Col[pin - 1];
-		if(row < 10 || col < 5 || col > COL-5)
+		if(row < 10 || col < 10 || col > COL-10)
 		{
 			break;
 		}
@@ -855,20 +949,16 @@ void Fork_Deal()
     int i,j,pin;
     int F_L_flag=0;
     int F_R_flag=0;
-    int row_L=left_apex.Apex_Row,col_L=left_apex.Apex_Col;
-    int row_R=right_apex.Apex_Row,col_R=right_apex.Apex_Col;
-    if(row_L<40||col_L>60)
+    int B_L,B_R,B_Top;
+    B_L=Black_White_Zone(5,80,25,110);
+    B_Top=Black_White_Zone(60,15,115,30);
+    B_R=Black_White_Zone(170,80,185,110);
+    if(Fork_Flag==IN_FORK)
     {
-        Fork_Flag=NO_FORK;
-        gpio_set(FMQ,0);
+        if(B_Top!=1) Fork_Flag=NO_FORK;
         return;
     }
-    if(row_R<40||col_R<60)
-    {
-        Fork_Flag=NO_FORK;
-        gpio_set(FMQ,0);
-        return;
-    }
+    if(B_Top!=1) return;
     for (i=50;i>35;i--)
     {
         int min=COL/2-20,max=COL/2+20;
@@ -978,7 +1068,7 @@ void Fork_Deal()
     ang_l=ang_l*180/3.14;
     ang_r=ang_r*180/3.14+180;
     ang=ang_r-ang_l;
-    if(ang>150 && ang<180)
+    if(ang>140)
     {
         fork_flag=1;
         Fork_Flag=IN_FORK;
@@ -1026,7 +1116,7 @@ void Track()
 //* 函数返回：
 //* 备 注：
 //***************************************************************
-void RacingLine_L()
+void RacingLine_L(int k)
 {
     int pin,i;
     int row,col;
@@ -1044,7 +1134,7 @@ void RacingLine_L()
         flag=119-pin;
         if(flag>left.Row[0])
         {
-            middleline[pin]=left.Col[0]+TrackWild[row]/2;
+            middleline[pin]=left.Col[0]+TrackWild[row]/k;
             col=middleline[pin];
             IMG_DATA[flag][col]=GREEN_IMG;
             mid_row[pin]=flag;
@@ -1052,7 +1142,7 @@ void RacingLine_L()
         else
         {
             row=left.Row[i];
-            col=left.Col[i]+TrackWild[row]/2;
+            col=left.Col[i]+TrackWild[row]/k;
             middleline[pin]=col;
             mid_row[pin]=row;
             i++;
@@ -1075,7 +1165,7 @@ void RacingLine_L()
 //* 函数返回：
 //* 备 注：
 //***************************************************************
-void RacingLine_R()
+void RacingLine_R(int k)
 {
     int pin,i;
     int row,col;
@@ -1097,7 +1187,7 @@ void RacingLine_R()
         flag=119-pin;
         if(flag>right.Row[0])
         {
-          middleline[pin]=right.Col[0]-TrackWild[row]/2;
+          middleline[pin]=right.Col[0]-TrackWild[row]/k;
           col=middleline[pin];
           mid_row[pin]=flag;
           IMG_DATA[flag][col]=GREEN_IMG;
@@ -1105,7 +1195,7 @@ void RacingLine_R()
         else
         {
           row=right.Row[i];
-          col=right.Col[i]-TrackWild[row]/2;
+          col=right.Col[i]-TrackWild[row]/k;
           middleline[pin]=col;
           mid_row[pin]=row;
           i++;
@@ -1129,49 +1219,9 @@ void RacingLine_R()
 //***************************************************************
 void Racing_Line_Fork_L()
 {
-    int pin,i;
-    int row,col;
-    int flag;
-    int l_flag,r_flag;
-    l_flag=0;
-    r_flag=0;
-    i=0;
     gpio_set(FMQ,1);
-    row=forck_L.Row[0];
-    if(Fork_Flag==IN_FORK && fork_flag==0)
-    {
-        RacingLine_L();
-        return;
-    }
-    for(pin=0;pin<240;pin++)
-    {
-        flag=119-pin;
-        if(flag>forck_L.Row[0])
-        {
-            middleline[pin]=forck_L.Col[0]-TrackWild[row]*0.75;
-            col=middleline[pin];
-            middleline0[pin]=middleline[pin];
-            mid_row[pin]=flag;
-            IMG_DATA[flag][col]=GREEN_IMG;
-        }
-        else
-        {
-              row=forck_L.Row[i];
-              col=forck_L.Col[i]-TrackWild[row]*0.75;
-              middleline[pin]=col;
-              middleline0[pin]=middleline[pin];
-              mid_row[pin]=row;
-              i++;
-              if(row>5&&row<ROW-5)
-              {
-                    if(col>5&&col<COL-5)
-                    {
-                        IMG_DATA[row][col]=GREEN_IMG;
-                    }
-              }
-        }
-        if(forck_L.Row[pin+1]==254) break;
-     }
+    if(left.Col[0]>right.Col[0]) RacingLine_R(2);
+    else RacingLine_L(5);
     return;
 }
 
