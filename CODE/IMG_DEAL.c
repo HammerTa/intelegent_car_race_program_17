@@ -79,6 +79,7 @@ int L_lenth,R_lenth;
 float Angle_end;
 float Angle_End[10]={0};
 float ang_l,ang_r,ang;//三叉角度判断
+float L_S,R_S;//边界方差
 //*********************************************
 
 //**********************************************
@@ -195,18 +196,21 @@ void Deal_Init()
 		left.Col[pin]=254; 
 		right.Row[pin]=254;
 		right.Col[pin]=254;
-		forck_L.Row[pin]=254;
-		forck_L.Col[pin]=254;
-        forck_R.Row[pin]=254;
-        forck_R.Col[pin]=254;
-                RacingLine.Row[pin]=254;
-                RacingLine.Col[pin]=254;
-                middleline[pin]=254;
-                middleline_l[pin]=254;
-                middleline_r[pin]=254;
-                mid_row_R[pin]=254;
-                mid_row_L[pin]=254;
-                mid_row[pin]=254;
+		if(Fork_Flag==NO_FORK)
+		{
+		    forck_L.Row[pin]=254;
+		    forck_L.Col[pin]=254;
+		    forck_R.Row[pin]=254;
+		    forck_R.Col[pin]=254;
+		}
+        RacingLine.Row[pin]=254;
+        RacingLine.Col[pin]=254;
+        middleline[pin]=254;
+        middleline_l[pin]=254;
+        middleline_r[pin]=254;
+        mid_row_R[pin]=254;
+        mid_row_L[pin]=254;
+        mid_row[pin]=254;
 	}
     gpio_set(FMQ,0);
     left_apex.Mark=254;
@@ -314,10 +318,67 @@ void Deal_Init()
      return W_percent;
  }
 
-
- void S_jugde()
+ ///***************************************************************
+ //* 函数名称： S_jugde
+ //* 功能说明： 标准差判断
+ //* 函数返回： 边界线与拟合曲线标准差
+ //* 备 注：    判断边界标准误差
+ //***************************************************************
+ float S_jugde(int row[],int col[],int N)
  {
-
+     int xy=0;
+     int x_sq=0;
+     float k,b;
+     float S=0;
+     float x_avg=0;
+     float y_avg=0;
+     float x_avg_sq=0;
+     int y_tg;
+     int i,num;
+     for(i=0,num=0;i<240;i++)
+     {
+         if(col[i]==254||i==N)
+         {
+             x_avg=x_avg/num;
+             break;
+         }
+         x_avg+=col[i];
+         num++;
+     }
+     x_avg_sq=x_avg*x_avg;
+     for(i=0;i<240;i++)
+     {
+         if(row[i]==254||i==N)
+         {
+             y_avg=y_avg/num;
+             break;
+         }
+         y_avg+=row[i];
+     }
+     for(i=0;i<240;i++)
+     {
+         if(row[i]==254||col[i]==254||i==N) break;
+         xy+=(row[i]*col[i]);
+     }
+     for(i=0;i<240;i++)
+     {
+         if(col[i]==254||i==N) break;
+         x_sq+=(col[i]*col[i]);
+     }
+     k=(xy-num*x_avg*y_avg)/(x_sq-num*x_avg_sq);
+     b=y_avg-k*x_avg;
+     for(i=0;i<240;i++)
+     {
+         if(row[i]==254||i==N)
+         {
+             S=sqrt(S/(num-1));
+             break;
+         }
+         y_tg=k*col[i]+b;
+         S+=(y_tg-row[i])*(y_tg-row[i]);
+     }
+     S=S/sqrt(1.0*num);
+     return S;
  }
 
 ///***************************************************************
@@ -619,66 +680,57 @@ void fixpoint()//左右边线起始点的修正
 
 void Left_Apex()
 {
-	if(left.Row[0]==254&&left.Col[0]==254)
-	{
-		return;
-	}
-	int pin;
-	int row_flag,col_flag;
-	float row,col;
-	float SIN_min=1;
-	for(pin=0;pin<240;pin++)
-	{
-		if(left.Row[pin]==254)
-		{
-			break;
-		}
-		row=(float)left.Row[pin];
-		col=(float)left.Col[pin];
-		left_ag.k=(160.0-row)/(60.5-col);
-		left_ag.SIN=(60.5-col)/sqrt((160.0-row)*(160-row)+(60.5-col)*(60.5-col));
-		if(left_ag.SIN < SIN_min)
-		{
-			SIN_min=left_ag.SIN;
-			row_flag=(int)row;
-			col_flag=(int)col;
-			left_apex.Mark=pin;
-		}
-	}
-	left_apex.Apex_Row=row_flag;
-	left_apex.Apex_Col=col_flag;
+    if(left.Row[0]==254&&left.Col[0]==254)
+    {
+        return;
+    }
+    int pin,col_max=0;
+    int row_flag,col_flag;
+    for(pin=0;pin<240;pin++)
+    {
+        if(left.Row[pin]==254)
+        {
+            break;
+        }
+        if(col_max < left.Col[pin])
+        {
+            col_max=left.Col[pin];
+            row_flag=left.Row[pin];
+            col_flag=left.Col[pin];
+            left_apex.Mark=pin;
+        }
+    }
+    left_apex.Apex_Row=row_flag;
+    left_apex.Apex_Col=col_flag;
+	L_S=S_jugde(left.Col,left.Row,left_apex.Mark);
 }//寻找左弯心
 
 void Right_Apex()
 {
-	if(right.Row[0]==254&&right.Col[0]==254)
-	{
-		return;
-	}
-	int pin;
-	int row_flag,col_flag;
-	float row,col;
-	float SIN_max=-1;
-	for(pin=0;pin<240;pin++)
-	{
-		if(right.Row[pin]==254)
-		{
-			break;
-		}
-		row=(float)right.Row[pin];
-		col=(float)right.Col[pin];
-		right_ag.k=(160.0-row)/(60.5-col);
-		right_ag.SIN=(60.5-col)/sqrt((160.0-row)*(160-row)+(60.5-col)*(60.5-col));
-		if(right_ag.SIN > SIN_max)
-		{
-			SIN_max=right_ag.SIN;
-			row_flag=(int)row;
-			col_flag=(int)col;
-			right_apex.Mark=pin;
-		}
-	}
-	right_apex.Apex_Row=row_flag;
-	right_apex.Apex_Col=col_flag;
+    if(right.Row[0]==254&&right.Col[0]==254)
+    {
+        return;
+    }
+    int pin;
+    int row_flag,col_flag;
+    int col_min=188;
+    for(pin=0;pin<240;pin++)
+    {
+        if(right.Row[pin]==254)
+        {
+            break;
+        }
+        if(right.Col[pin] < col_min)
+        {
+            col_min=right.Col[pin];
+            row_flag=right.Row[pin];
+            col_flag=right.Col[pin];
+            right_apex.Mark=pin;
+        }
+    }
+    right_apex.Apex_Row=row_flag;
+    right_apex.Apex_Col=col_flag;
+	R_S=S_jugde(right.Col,right.Row,right_apex.Mark);
 }//寻找右弯心
 
 //***************************************************************
@@ -955,8 +1007,11 @@ void Fork_Deal()
     B_R=Black_White_Zone(170,80,185,110);
     if(Fork_Flag==IN_FORK)
     {
-        if(B_Top!=1) Fork_Flag=NO_FORK;
-        return;
+        if(B_Top!=1)
+        {
+            Fork_Flag=NO_FORK;
+            return;
+        }
     }
     if(B_Top!=1) return;
     for (i=50;i>35;i--)
@@ -1057,6 +1112,7 @@ void Fork_Deal()
         }
     }
     int V_L[2],V_R[2];
+    if(forck_L.Row[4]==254||forck_L.Row[4]==254) return;
     V_L[0]=forck_L.Row[4]-forck_L.Row[0];
     V_L[1]=forck_L.Col[4]-forck_L.Col[0];
     V_R[0]=forck_R.Row[4]-forck_R.Row[0];
@@ -1068,7 +1124,7 @@ void Fork_Deal()
     ang_l=ang_l*180/3.14;
     ang_r=ang_r*180/3.14+180;
     ang=ang_r-ang_l;
-    if(ang>140)
+    if(ang>150 && ang<180)
     {
         fork_flag=1;
         Fork_Flag=IN_FORK;
@@ -1220,8 +1276,44 @@ void RacingLine_R(int k)
 void Racing_Line_Fork_L()
 {
     gpio_set(FMQ,1);
-    if(left.Col[0]>right.Col[0]) RacingLine_R(2);
-    else RacingLine_L(5);
+//    if(left.Col[0]>right.Col[0]) RacingLine_R(2);
+//    else RacingLine_L(5);
+//    return;
+    int pin,i;
+    int row,col;
+    int flag;
+    int l_flag,r_flag;
+    l_flag=0;
+    r_flag=0;
+    i=0;
+    row=forck_L.Row[0];
+    for(pin=0;pin<240;pin++)
+    {
+        flag=119-pin;
+        if(flag>forck_L.Row[0])
+        {
+            middleline[pin]=forck_L.Col[0]-TrackWild[row]/2;
+            col=middleline[pin];
+            mid_row[pin]=flag;
+            IMG_DATA[flag][col]=GREEN_IMG;
+        }
+        else
+        {
+              row=forck_L.Row[i];
+              col=forck_L.Col[i]-TrackWild[row]/2;
+              middleline[pin]=col;
+              mid_row[pin]=row;
+              i++;
+              if(row>5&&row<ROW-5)
+              {
+                    if(col>5&&col<COL-5)
+                    {
+                        IMG_DATA[row][col]=GREEN_IMG;
+                    }
+              }
+        }
+        if(forck_L.Row[pin+1]==254) break;
+     }
     return;
 }
 

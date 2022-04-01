@@ -35,7 +35,7 @@
 #define KEY_4 P22_3
 //-----µç»ú
 #define motor_l_EN       P02_4//×ó  +
-#define motor_l_PN       ATOM0_CH7_P02_7//×ó
+#define motor_l_PN        ATOM0_CH7_P02_7//×ó
 #define motor_r_EN       P02_6//ÓÒ  +
 #define motor_r_PN       ATOM0_CH5_P02_5//ÓÒ
 #define motor_frequency     13000

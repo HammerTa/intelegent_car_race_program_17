@@ -230,8 +230,8 @@ void motor_DiffSpeed()
     {
      chasu=CS_lim*setspeed;
     }
-    setspeed_L=(int)(setspeed);//-chasu);
-    setspeed_R=(int)(setspeed+chasu);
+    setspeed_L=(int)(setspeed-chasu/2);
+    setspeed_R=(int)(setspeed+chasu/2);
   }
   else
   {
@@ -239,8 +239,8 @@ void motor_DiffSpeed()
     {
      chasu=CS_lim*setspeed;
     }
-    setspeed_L=(int)(setspeed+chasu);
-    setspeed_R=(int)(setspeed);//-chasu);
+    setspeed_L=(int)(setspeed+chasu/2);
+    setspeed_R=(int)(setspeed-chasu/2);
   }
 }
 

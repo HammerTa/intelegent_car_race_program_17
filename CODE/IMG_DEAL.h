@@ -44,6 +44,7 @@ extern int wild1;
 extern int wild10;
 extern float ang,ang_l,ang_r;
 extern int L_lenth,R_lenth;
+extern float L_S,R_S;
 
 extern unsigned char stop;
 extern unsigned char deal_flag;

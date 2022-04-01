@@ -72,14 +72,14 @@ void show()
             break;
         case 1:
             lcd_showstr(0,0,title2);
-            lcd_showfloat(0,1,L_motor_data[0],2,1);
+            lcd_showfloat(0,1,L_motor_data[0],3,1);
             lcd_showfloat(0,2,L_motor_data[1],2,1);
             lcd_showfloat(0,3,L_motor_data[2],2,1);
             lcd_showint32(0,7,point_flag,5);
             break;
         case 2:
             lcd_showstr(0,0,title3);
-            lcd_showfloat(0,1,R_motor_data[0],2,1);
+            lcd_showfloat(0,1,R_motor_data[0],3,1);
             lcd_showfloat(0,2,R_motor_data[1],2,1);
             lcd_showfloat(0,3,R_motor_data[2],2,1);
             lcd_showint32(0,7,point_flag,5);
@@ -256,7 +256,7 @@ void Data_save()
     Save[8]=(uint32)(R_motor_data[1]*10);
     Save[9]=(uint32)(R_motor_data[2]*10);
     Save[10]=(uint32)(speed_data[0]*10);
-    Save[11]=(uint32)(speed_data[1]*10);
+    Save[11]=(uint32)(speed_data[1]*100);
     for(int i=0;i<100;i++)
     {
         eeprom_page_program(0,i,&Save[i]);
@@ -280,7 +280,7 @@ void Read_data()
     R_motor_data[1]=0.1*(float)Save[8];
     R_motor_data[2]=0.1*(float)Save[9];
     speed_data[0]=0.1*(float)Save[10];
-    speed_data[1]=0.1*(float)Save[11];
+    speed_data[1]=0.01*(float)Save[11];
 }
 
 void long_prass_1(int key_press)
