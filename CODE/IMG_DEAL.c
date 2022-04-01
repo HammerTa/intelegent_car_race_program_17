@@ -80,6 +80,7 @@ float Angle_end;
 float Angle_End[10]={0};
 float ang_l,ang_r,ang;//三叉角度判断
 float L_S,R_S;//边界方差
+float CorssCol=0;
 //*********************************************
 
 //**********************************************
@@ -111,9 +112,9 @@ int weight[240]={
 4,4,4,4,4,4,4,4,4,4,//41-50
 6,6,6,6,6,6,6,6,6,6,//51-60
 6,6,6,6,6,6,6,6,6,6,//61-70
-3,3,3,3,3,3,3,3,3,3,//71-80
-3,3,3,3,3,3,3,3,3,3,//81-90
-1,1,1,1,1,1,1,1,1,1,//91-100
+7,7,7,7,7,7,7,7,7,7,//71-80
+5,5,5,5,5,5,5,5,5,5,//81-90
+2,2,2,2,2,2,2,2,2,2,//91-100
 1,1,1,1,1,1,1,1,1,1,//101-110
 0,0,0,0,0,0,0,0,0,0,//111-120
 0,0,0,0,0,0,0,0,0,0,
@@ -306,7 +307,7 @@ void Deal_Init()
              else
              {
                  Black_point++;
-                 if(Black_point>6)
+                 if(Black_point>4)
                  {
                      Black_point=0;
                      break;
@@ -342,6 +343,7 @@ void Deal_Init()
              x_avg=x_avg/num;
              break;
          }
+         if(row[i]==row[i+1]) continue;
          x_avg+=col[i];
          num++;
      }
@@ -353,16 +355,19 @@ void Deal_Init()
              y_avg=y_avg/num;
              break;
          }
+         if(row[i]==row[i+1]) continue;
          y_avg+=row[i];
      }
      for(i=0;i<240;i++)
      {
          if(row[i]==254||col[i]==254||i==N) break;
+         if(row[i]==row[i+1]) continue;
          xy+=(row[i]*col[i]);
      }
      for(i=0;i<240;i++)
      {
          if(col[i]==254||i==N) break;
+         if(row[i]==row[i+1]) continue;
          x_sq+=(col[i]*col[i]);
      }
      k=(xy-num*x_avg*y_avg)/(x_sq-num*x_avg_sq);
@@ -374,6 +379,7 @@ void Deal_Init()
              S=sqrt(S/(num-1));
              break;
          }
+         if(row[i]==row[i+1]) continue;
          y_tg=k*col[i]+b;
          S+=(y_tg-row[i])*(y_tg-row[i]);
      }
@@ -1352,6 +1358,8 @@ void Img_Deal()
     InitData();
     deal_flag=1;
     //seekfree_sendimg_03x(UART_2,IMG_DATA,188,120);//传输原始图像
+    CorssCol=Cross_col();
+    if(CorssCol<0.1) CorssCol=0.1;
     protect();
 	LeftStartFind() ;
 	RightStartFind();

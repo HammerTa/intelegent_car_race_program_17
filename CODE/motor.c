@@ -33,7 +33,7 @@ int ui_lim=0;
 int error=0;
 int error0=0;
 int lim_pwm=9000;
-float CS_lim=0.95;
+float CS_lim=0.4;
 float P_rate=0.1,D_rate=0;
 int e_lim=100;
 int ERROR[5]={0,0,0,0,0};
@@ -48,6 +48,7 @@ float chasu,chasu_k;      //差速，用于转弯，低速时不需要
 float left_motor_kp,left_motor_ki,left_motor_kd;    //电机pid用于稳定控制轮子转速
 float right_motor_kp,right_motor_ki,right_motor_kd;
 int setspeed;     //别给太大，一开始可以给20
+int setspeed_used;
 int time=0;
 int Mid_row;
 ///***************************************************************
@@ -101,6 +102,8 @@ void Control()
     motor_pid();
     if(stop==1)
     {
+        gpio_set(FMQ,0);
+        systick_start(STM1);
         time++;
         if(time>=200)
         {
@@ -218,29 +221,32 @@ void motor_DiffSpeed()
     {
         setspeed=0;
     }
+    CorssCol=1;
     chasu=(chasu_k*fabs(1.0*error))/(2+chasu_k*fabs(1.0*error))*setspeed;//差速计算公式
+    setspeed_used=(int)(setspeed*CorssCol);
+    if(setspeed_used<20) setspeed_used=20;
   if(error==0)
   {
-    setspeed_L=setspeed;
-    setspeed_R=setspeed;
+    setspeed_L=setspeed_used;
+    setspeed_R=setspeed_used;
   }
   else if(error<0)
   {
-    if(chasu>CS_lim*setspeed)//差速限幅，不一定是0.9
+    if(chasu>CS_lim*setspeed_used)//差速限幅，不一定是0.9
     {
      chasu=CS_lim*setspeed;
     }
-    setspeed_L=(int)(setspeed-chasu/2);
-    setspeed_R=(int)(setspeed+chasu/2);
+    setspeed_L=(int)(setspeed_used-chasu/2);
+    setspeed_R=(int)(setspeed_used+chasu/2);
   }
   else
   {
-    if(chasu>CS_lim*setspeed)
+    if(chasu>CS_lim*setspeed_used)
     {
-     chasu=CS_lim*setspeed;
+     chasu=CS_lim*setspeed_used;
     }
-    setspeed_L=(int)(setspeed+chasu/2);
-    setspeed_R=(int)(setspeed-chasu/2);
+    setspeed_L=(int)(setspeed_used+chasu/2);
+    setspeed_R=(int)(setspeed_used-chasu/2);
   }
 }
 
@@ -309,8 +315,8 @@ void motor_pid()
 //***************************************************************
 void pwm_out()
 {
-    //left_pwm_out=2500;
-    //right_pwm_out=2500;//如果注释取消 则为开环
+    left_pwm_out=2500;
+    right_pwm_out=2500;//如果注释取消 则为开环
     if(pwm0_flag==1)
     {
         left_pwm_out=0;
@@ -338,5 +344,15 @@ void pwm_out()
     }
 }
 
+///***************************************************************
+//* 函数名称： Gear_Box
+//* 功能说明： 电机PWM输出
+//* 函数返回： 无
+//* 备 注：
+//***************************************************************
+void Gear_Box()
+{
+
+}
 
 

@@ -92,6 +92,8 @@ void show()
             break;
         case 4:
             lcd_showstr(0,0,"Ready?");
+            lcd_showfloat(0,1,R_S,2,4);
+            lcd_showfloat(0,2,L_S,2,4);
             lcd_showint32(0,7,point_flag,5);
             break;
     }
@@ -207,7 +209,7 @@ void data_change(int key_input)
                     eeprom_erase_sector(0);
                     systick_delay_ms(STM0,1000);
                     Data_save();
-                    lcd_showstr(0,1,"GO!");
+                    lcd_showstr(0,7,"GO!");
                     systick_delay_ms(STM0,1000);
                     changing();
                     break;

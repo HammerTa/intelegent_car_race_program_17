@@ -364,7 +364,7 @@ void mt9v03x_vsync(void)
         link_list_num = eru_dma_init(MT9V03X_DMA_CH, GET_PORT_IN_ADDR(MT9V03X_DATA_PIN), camera_buffer_addr, MT9V03X_PCLK_PIN, RISING, MT9V03X_W*MT9V03X_H);
         dma_start(MT9V03X_DMA_CH);
     }
-    else
+    else if(!mt9v03x_finish_flag)
 	{
 		if(1 == link_list_num)
 		{

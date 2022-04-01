@@ -10,6 +10,12 @@ typedef enum
     OUT_FORK,
 }FORK_enum;
 
+typedef enum
+{
+    READY,
+    IN,
+    TIMES,
+}Garage_enmum;
 //----------------函数定义区--------------
 void Img_Deal(void);
 void Deal_Init(void);
@@ -17,7 +23,7 @@ void Data_collect_display(void);
 //void Img_Send_To_Top( uint8 Image[ROW][COL]); 
 void LeftStartFind(void);
 void RightStartFind(void);
-
+float Cross_col(void);
 extern int v;
    
 extern int dj_end;
@@ -45,6 +51,7 @@ extern int wild10;
 extern float ang,ang_l,ang_r;
 extern int L_lenth,R_lenth;
 extern float L_S,R_S;
+extern float CorssCol;
 
 extern unsigned char stop;
 extern unsigned char deal_flag;
