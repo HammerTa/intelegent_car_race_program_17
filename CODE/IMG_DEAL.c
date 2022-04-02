@@ -104,31 +104,19 @@ float CorssCol=0;
 
 //--------------------------
 //摄像头前瞻量，根据摄像头位置设置，数字代表权重大小，例如第1个数为1代表第0行的权重为1
-int weight[240]={
-1,1,1,1,1,1,1,1,1,1,//1-10
-3,3,3,3,3,3,3,3,3,3,//11-20
-2,2,2,2,2,2,2,2,2,2,//21-30
+int weight[120]={
+2,2,2,2,2,2,2,2,2,2,//1-10
+2,2,2,2,2,2,2,2,2,2,//11-20
+3,3,3,3,3,3,3,3,3,3,//21-30
 4,4,4,4,4,4,4,4,4,4,//31-40
-4,4,4,4,4,4,4,4,4,4,//41-50
-6,6,6,6,6,6,6,6,6,6,//51-60
-6,6,6,6,6,6,6,6,6,6,//61-70
-7,7,7,7,7,7,7,7,7,7,//71-80
-5,5,5,5,5,5,5,5,5,5,//81-90
-2,2,2,2,2,2,2,2,2,2,//91-100
-1,1,1,1,1,1,1,1,1,1,//101-110
+7,7,7,7,7,7,7,7,7,7,//41-50
+10,10,10,10,10,10,10,10,10,10,//51-60
+12,12,12,12,12,12,12,12,12,12,//61-70
+14,14,14,14,14,14,14,14,14,14,//71-80
+9,9,9,9,9,9,9,9,9,9,//81-90
+5,5,5,5,5,5,5,5,5,5,//91-100
+4,4,4,4,4,4,4,4,4,4,//101-110
 0,0,0,0,0,0,0,0,0,0,//111-120
-0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,//111-120  
 };
 
 //--------------------------
@@ -452,13 +440,14 @@ void left_jump()
 	int whitecounter = 0;
 	int rowcheack[12] = {-1, 1, -1, 0, 2, 0, 0, -1, -1, 1, 0, 1};
 	int colcheack[12] = {1, 0, -1, -1, 2, -1, -1, 0, 0, 1, -2, 1};
-        int colmin, colmax;
-        if(left.Row[0] == 254)
+    int colmin, colmax;
+    if(left.Row[0] == 254)
 	{
 		return;
 	}
-        pin=1;
-        for(row=left.Row[0] - pin;pin<5;pin++)
+    left_flag=1;
+    pin=1;
+    for(row=left.Row[0] - pin;pin<5;pin++)
 	{
 		find = 0;
 		row = left.Row[0] - pin;
@@ -528,7 +517,13 @@ void left_jump()
 			}
 		}
 	}
-  left_end=row;
+	if(L_lenth<=5)
+	{
+	    left_flag=0;
+	    left.Row[0]=254;
+	    left.Col[0]=254;
+	}
+    left_end=row;
 }
 void right_jump()
 {
@@ -536,14 +531,15 @@ void right_jump()
 	int row, col,find;
 	int row_temp, col_temp;
 	int whitecounter = 0;
-        int colmin, colmax;
+    int colmin, colmax;
 	int rowcheack[12] = {-1, 1, -1, 0, 2, 0, 0, -1, -1, 1, 0, 1};
 	int colcheack[12] = {-1, 0, 1, 1, -2, 1, 1, 0, 0, -1, 2, -1};
-        if(right.Row[0] == 254)
+    if(right.Row[0] == 254)
 	{
 		return;
 	}
-        for(pin=1,row=right.Row[0] - pin;pin<5;pin++)
+    right_flag=1;
+    for(pin=1,row=right.Row[0] - pin;pin<5;pin++)
 	{
 		find = 0;
 		row = right.Row[0] - pin;
@@ -613,6 +609,12 @@ void right_jump()
 			}
 		}
 	}
+	if(R_lenth<=5)
+	{
+	    right_flag=0;
+	    right.Row[0]=254;
+	    right.Col[0]=254;
+	}
   right_end=row;
   
 }
@@ -625,7 +627,7 @@ void right_jump()
 //***************************************************************
 void fixpoint()//左右边线起始点的修正
 {
-        if(left.Col[0] == 254 && left.Row[0]==254)
+    if(left.Col[0] == 254 && left.Row[0]==254)
 	{
 		return;
 	}
@@ -762,21 +764,21 @@ void Racing_Line()
         }
         if(left_flag==0)
         {
-            mark=right_apex.Mark+(115-right.Row[0]);
-            row=right.Row[0];
+            mark=right_apex.Mark+(115-right.Row[5]);
+            row=right.Row[5];
+            i=5;
             for(pin=0;pin<mark;pin++)
             {
                 flag=119-pin;
-                if(flag>right.Row[0])
+                if(flag>right.Row[5])
                 {
-                  middleline[pin]=right.Col[0]-TrackWild[row]/2;
+                  middleline[pin]=right.Col[5]-TrackWild[row]/2;
                   col=middleline[pin];
                   mid_row[pin]=flag;
                   IMG_DATA[flag][col]=GREEN_IMG;
                 }
                 else
                 {
-
                   row=right.Row[i];
                   col=right.Col[i]-TrackWild[row]/2;
                   middleline[pin]=col;
@@ -795,14 +797,15 @@ void Racing_Line()
         }
         else if(right_flag==0)
         {
-          mark=left_apex.Mark+(115-left.Row[0]);
-          row=left.Row[0];
+          mark=left_apex.Mark+(115-left.Row[5]);
+          row=left.Row[5];
+          i=5;
           for(pin=0;pin<mark;pin++)
             {
               flag=119-pin;
-              if(flag>left.Row[0])
+              if(flag>left.Row[5])
               {
-                middleline[pin]=left.Col[0]+TrackWild[row]/2;
+                middleline[pin]=left.Col[5]+TrackWild[row]/2;
                   col=middleline[pin];
                   IMG_DATA[flag][col]=GREEN_IMG;
                   mid_row[pin]=flag;
@@ -827,14 +830,15 @@ void Racing_Line()
         }
         if(left_apex.Mark>=right_apex.Mark)
         {
-            mark=left_apex.Mark+(115-left.Row[0]);
-            row=left.Row[0];
+            mark=left_apex.Mark+(115-left.Row[5]);
+            row=left.Row[5];
+            i=5;
             for(pin=0;pin<mark;pin++)
             {
               flag=119-pin;
-              if(flag>left.Row[0])
+              if(flag>left.Row[5])
               {
-                middleline[pin]=left.Col[0]+TrackWild[row]/2;
+                middleline[pin]=left.Col[5]+TrackWild[row]/2;
                   col=middleline[pin];
                   mid_row[pin]=flag;
                   IMG_DATA[flag][col]=GREEN_IMG;
@@ -860,14 +864,15 @@ void Racing_Line()
         }
         else if(left_apex.Mark<right_apex.Mark)
         {
-            mark=right_apex.Mark+(115-right.Row[0]);
-            row=right.Row[0];
+            mark=right_apex.Mark+(115-right.Row[5]);
+            row=right.Row[5];
+            i=5;
             for(pin=0;pin<mark;pin++)
             {
               flag=119-pin;
-              if(flag>right.Row[0])
+              if(flag>right.Row[5])
               {
-                middleline[pin]=right.Col[0]-TrackWild[row]/2;
+                middleline[pin]=right.Col[5]-TrackWild[row]/2;
                   col=middleline[pin];
                   mid_row[pin]=flag;
                   IMG_DATA[flag][col]=GREEN_IMG;
@@ -1059,7 +1064,7 @@ void Fork_Deal()
     int colmin,colmax;
     //下为左
     pin=1;
-    for(row=forck_L.Row[0] - pin;pin<5;pin++)
+    for(row=forck_L.Row[0] - pin;pin<15;pin++)
     {
         find = 0;
         row = forck_L.Row[0] - pin;
@@ -1067,7 +1072,7 @@ void Fork_Deal()
         colmax = forck_L.Col[pin - 1] + 10;
         for(col = colmin;col <= colmax;col++)
         {
-            if(col < COL - 5 && col > -1)
+            if(col < COL - 5 && col > 5)
             {
                 if(IMG_DATA[row][col] == WHITE_IMG && IMG_DATA[row][col + 1] == WHITE_IMG)
                 {
@@ -1089,7 +1094,7 @@ void Fork_Deal()
     }
     //下为右
     pin=1;
-    for(row=right.Row[0] - pin;pin<5;pin++)
+    for(row=right.Row[0] - pin;pin<15;pin++)
     {
         find = 0;
         row = forck_R.Row[0] - pin;
@@ -1097,7 +1102,7 @@ void Fork_Deal()
         colmax = forck_R.Col[pin - 1] + 10;
         for(col = colmax;col >= colmin;col--)
         {
-            if(col < COL + 1 && col > 5)
+            if(col < COL - 5 && col > 5)
             {
                 if(IMG_DATA[row][col] == WHITE_IMG && IMG_DATA[row][col - 1] == WHITE_IMG)
                 {
@@ -1125,8 +1130,6 @@ void Fork_Deal()
     V_R[1]=forck_R.Col[4]-forck_R.Col[0];
     ang_l=atan(1.0*V_L[0]/V_L[1]);
     ang_r=atan(1.0*V_R[0]/V_R[1]);
-    //ang_l=1.0*V_L[0]/V_L[1];
-    //ang_r=1.0*V_R[0]/V_R[1];
     ang_l=ang_l*180/3.14;
     ang_r=ang_r*180/3.14+180;
     ang=ang_r-ang_l;

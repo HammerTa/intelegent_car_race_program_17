@@ -45,7 +45,7 @@ extern int mid_row[240];
 extern int max;
 extern int min;
 extern int line[120];
-extern int weight[240];
+extern int weight[120];
 extern int wild1;
 extern int wild10;
 extern float ang,ang_l,ang_r;
