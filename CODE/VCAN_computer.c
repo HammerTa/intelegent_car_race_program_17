@@ -23,6 +23,7 @@
 #include "headfile.h"
 
 int bluetooth[8]={0};
+int send_flag=0;
 /*!
  *  @brief      山外多功能调试助手上位机，摄像头显示函数
  *  @param      imgaddr    图像起始地址
@@ -96,13 +97,13 @@ void vcan_sendware(void *wareaddr, uint32_t waresize)
 void bluesend (void)
 {
    //蓝牙传数 山外
-      bluetooth[0]=(int)speed_l;
-      bluetooth[1]=(int)speed_r;
-      bluetooth[2]=(int)setspeed_L;
-      bluetooth[3]=(int)setspeed_R;
-      bluetooth[4]=(int)fork_flag;
-      bluetooth[5]=(int)ang;
-      bluetooth[6]=(int)ang_l;
+      bluetooth[0]=(int)duoji_kp0;
+      bluetooth[1]=(int)duoji_kp1;
+      bluetooth[2]=(int)error_k;
+      bluetooth[3]=(int)error;
+      bluetooth[4]=(int)setspeed;
+      bluetooth[5]=(int)duoji_kp;
+      bluetooth[6]=(int)duoji_kd;
       bluetooth[7]=(int)ang_r;
       vcan_sendware(bluetooth,sizeof(bluetooth));
 }

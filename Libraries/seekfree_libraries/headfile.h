@@ -33,22 +33,26 @@
 #define KEY_2 P22_1
 #define KEY_3 P22_2
 #define KEY_4 P22_3
+#define KEY_COL1 P32_4
+#define KEY_COL2 P33_12
+#define KEY_COL3 P33_13
 //-----电机
-#define motor_l_EN       P02_4//左  +
-#define motor_l_PN        ATOM0_CH7_P02_7//左
-#define motor_r_EN       P02_6//右  +
+#define motor_l_EN       P02_6//左  +
+#define motor_l_PN        ATOM0_CH7_P02_7//左ATOM0_CH5_P02_5
+#define motor_r_EN       P02_4//右  +P02_4
 #define motor_r_PN       ATOM0_CH5_P02_5//右
 #define motor_frequency     13000
+//换板子了记得重测上面四个引脚
 //-----舵机
 #define steering_gear     ATOM1_CH1_P33_9
 #define steering_frequency 50
-#define S3010_Middle   595  //舵机中值
-#define S3010_Left     665  //左打死
-#define S3010_Right    525 //右打死
+#define S3010_Middle   594  //舵机中值
+#define S3010_Left     664  //左打死
+#define S3010_Right    524 //右打死
 //-----编码器
-#define encoder_GPT_l     GPT12_T4
-#define encoder_EUD_l     GPT12_T4EUDA_P00_9  //DIR
-#define encoder_IN_l      GPT12_T4INA_P02_8   //LSB
+#define encoder_GPT_l     GPT12_T5
+#define encoder_EUD_l     GPT12_T5EUDB_P10_1  //DIR
+#define encoder_IN_l      GPT12_T5INB_P10_3   //LSB
 #define encoder_GPT_r     GPT12_T2
 #define encoder_EUD_r     GPT12_T2EUDB_P33_6  //DIR
 #define encoder_IN_r      GPT12_T2INB_P33_7   //LSB

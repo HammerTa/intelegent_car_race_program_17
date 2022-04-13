@@ -40,12 +40,20 @@ void core1_main(void)
     while (TRUE)
     {
 		//用户在此处编写任务代码
-        if(mt9v03x_finish_flag==1)
+        if(stop==0)
         {
-            Img_Deal();
-            mt9v03x_finish_flag=0;
+            if(mt9v03x_finish_flag==1)
+            {
+                Img_Deal();
+                mt9v03x_finish_flag=0;
+            }
         }
-
+//        else if(pwm0_flag==1) continue;
+//        else if(stop==1)
+//        {
+//            systick_delay_ms(STM1,1000);
+//            pwm0_flag=1;
+//        }
     }
 }
 

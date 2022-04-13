@@ -33,7 +33,7 @@ int ui_lim=0;
 int error=0;
 int error0=0;
 int lim_pwm=9000;
-float CS_lim=0.4;
+float CS_lim=0.6;
 float P_rate=0.1,D_rate=0;
 int e_lim=100;
 int ERROR[5]={0,0,0,0,0};
@@ -41,16 +41,18 @@ static int COUNT=0;
 uint8 pwm0_flag=0;
 //================需要修改的================
 float duoji_kp,duoji_kd;    //舵机，用于打角转弯
-float duoji_kp0,duoji_kd0;
-float duoji_kp1,duoji_kd1;
+float duoji_kp0,duoji_kd0;  //直道
+float duoji_kp1,duoji_kd1;  //弯道
 float chasu,chasu_k;      //差速，用于转弯，低速时不需要
+float error_k;
 
 float left_motor_kp,left_motor_ki,left_motor_kd;    //电机pid用于稳定控制轮子转速
 float right_motor_kp,right_motor_ki,right_motor_kd;
 int setspeed;     //别给太大，一开始可以给20
 int setspeed_used;
-int time=0;
+int time=0,timestop=0;
 int Mid_row;
+int min_speed;
 ///***************************************************************
 //* 函数名称： steering_inti
 //* 功能说明： 舵机初始化
@@ -102,13 +104,20 @@ void Control()
     motor_pid();
     if(stop==1)
     {
-        gpio_set(FMQ,0);
-        systick_start(STM1);
         time++;
+        timestop=0;
         if(time>=200)
         {
             pwm0_flag=1;
+            send_flag=0;
         }
+        gpio_set(FMQ,0);
+    }
+    else
+    {
+        timestop++;
+        time=0;
+        if(timestop>=6000) stop=1;
     }
     pwm_out();
 }
@@ -119,9 +128,13 @@ void Control()
 //* 函数返回： 无
 //* 备 注：
 //***************************************************************
+float temp_cheak;
 void PDChange(int er)
 {
-    duoji_kp=duoji_kp0;//+1.0*abs(er)*(duoji_kp1-duoji_kp0)/e_lim;
+    if(er<0) er= 0 - er;
+    temp_cheak=duoji_kp1-duoji_kp0;
+    error_k=(duoji_kp1-duoji_kp0)/100;
+    duoji_kp=error_k*er+duoji_kp0;
     duoji_kd=duoji_kd0;
 }
 
@@ -164,19 +177,18 @@ void angle_deal()
   {
       error=e_lim;
   }
-  if(fork_turn==1) error=-40;
   //================================
-  ERROR[COUNT]=(int)(error*0.2);
-  COUNT++;
-  error=0;
-  for(j=0;j<5;j++)
-  {
-    error+=ERROR[j];
-  }
-  if(COUNT>=5)
-  {
-    COUNT=0;
-  }//滤波
+//  ERROR[COUNT]=(int)(error*0.2);
+//  COUNT++;
+//  error=0;
+//  for(j=0;j<5;j++)
+//  {
+//    error+=ERROR[j];
+//  }
+//  if(COUNT>=5)
+//  {
+//    COUNT=0;
+//  }//滤波
   //======打角pd控制================
   PDChange(error);
   angle=(int)(duoji_kp*error+duoji_kd*(error-error0));
@@ -203,10 +215,25 @@ void Speed_Get()
 {
     speed_l=-gpt12_get(encoder_GPT_l);
     speed_r=gpt12_get(encoder_GPT_r);
+    //speed_l=speed_r;//编码器损坏，由于不需要差速暂时如此
     //获得读数
     gpt12_clear(encoder_GPT_l);
     gpt12_clear(encoder_GPT_r);
     //清除读数
+}
+
+
+///***************************************************************
+//* 函数名称： Gear_Box
+//* 功能说明： 电机PWM输出
+//* 函数返回： 无
+//* 备 注：
+//***************************************************************
+void Gear_Box()
+{
+    CorssCol=1;
+    setspeed_used=(int)(setspeed*CorssCol);
+    if(setspeed_used<min_speed) setspeed_used=min_speed;
 }
 
 ///***************************************************************
@@ -217,14 +244,8 @@ void Speed_Get()
 //***************************************************************
 void motor_DiffSpeed()
 {
-    if(stop==1)
-    {
-        setspeed=0;
-    }
-    CorssCol=1;
-    chasu=(chasu_k*fabs(1.0*error))/(2+chasu_k*fabs(1.0*error))*setspeed;//差速计算公式
-    setspeed_used=(int)(setspeed*CorssCol);
-    if(setspeed_used<20) setspeed_used=20;
+  Gear_Box();
+  chasu=(chasu_k*fabs(1.0*error))/(2+chasu_k*fabs(1.0*error))*setspeed_used;//差速计算公式
   if(error==0)
   {
     setspeed_L=setspeed_used;
@@ -234,10 +255,10 @@ void motor_DiffSpeed()
   {
     if(chasu>CS_lim*setspeed_used)//差速限幅，不一定是0.9
     {
-     chasu=CS_lim*setspeed;
+     chasu=CS_lim*setspeed_used;
     }
-    setspeed_L=(int)(setspeed_used-chasu/2);
-    setspeed_R=(int)(setspeed_used+chasu/2);
+    setspeed_L=(int)(setspeed_used-chasu*0.75);
+    setspeed_R=(int)(setspeed_used+chasu*0.25);
   }
   else
   {
@@ -245,12 +266,17 @@ void motor_DiffSpeed()
     {
      chasu=CS_lim*setspeed_used;
     }
-    setspeed_L=(int)(setspeed_used+chasu/2);
-    setspeed_R=(int)(setspeed_used-chasu/2);
+    setspeed_L=(int)(setspeed_used+chasu*0.25);
+    setspeed_R=(int)(setspeed_used-chasu*0.75);
+  }
+  if(stop==1)
+  {
+      setspeed_L=0;
+      setspeed_R=0;
   }
 }
 
-///***************************************************************
+///**************************************************************
 //* 函数名称： motor_pid
 //* 功能说明： PID电机控制
 //* 函数返回： 无
@@ -315,8 +341,8 @@ void motor_pid()
 //***************************************************************
 void pwm_out()
 {
-    left_pwm_out=2500;
-    right_pwm_out=2500;//如果注释取消 则为开环
+//    left_pwm_out=2500;
+//    right_pwm_out=-2500;//如果注释取消 则为开环
     if(pwm0_flag==1)
     {
         left_pwm_out=0;
@@ -324,35 +350,24 @@ void pwm_out()
     }
     if(left_pwm_out>=0)
     {
-        gpio_set(motor_l_EN,1);
+        gpio_set(motor_l_EN,0);
         pwm_duty(motor_l_PN,left_pwm_out);
     }
     else
     {
-        gpio_set(motor_l_EN,0);
+        gpio_set(motor_l_EN,1);
         pwm_duty(motor_l_PN,-left_pwm_out);
     }
     if(right_pwm_out>=0)
     {
-        gpio_set(motor_r_EN,1);
+        gpio_set(motor_r_EN,0);
         pwm_duty(motor_r_PN,right_pwm_out);
     }
     else
     {
-        gpio_set(motor_r_EN,0);
+        gpio_set(motor_r_EN,1);
         pwm_duty(motor_r_PN,-right_pwm_out);
     }
-}
-
-///***************************************************************
-//* 函数名称： Gear_Box
-//* 功能说明： 电机PWM输出
-//* 函数返回： 无
-//* 备 注：
-//***************************************************************
-void Gear_Box()
-{
-
 }
 
 

@@ -434,12 +434,12 @@ void RightStartFind()
 
 void left_jump()
 {
-	int pin, i, j;
+	int pin;//, i, j;
 	int row, col,find;
-	int row_temp, col_temp;
-	int whitecounter = 0;
-	int rowcheack[12] = {-1, 1, -1, 0, 2, 0, 0, -1, -1, 1, 0, 1};
-	int colcheack[12] = {1, 0, -1, -1, 2, -1, -1, 0, 0, 1, -2, 1};
+//	int row_temp, col_temp;
+//	int whitecounter = 0;
+//	int rowcheack[12] = {-1, 1, -1, 0, 2, 0, 0, -1, -1, 1, 0, 1};
+//	int colcheack[12] = {1, 0, -1, -1, 2, -1, -1, 0, 0, 1, -2, 1};
     int colmin, colmax;
     if(left.Row[0] == 254)
 	{
@@ -447,15 +447,17 @@ void left_jump()
 	}
     left_flag=1;
     pin=1;
-    for(row=left.Row[0] - pin;pin<5;pin++)
+    for(row=left.Row[0] - pin;pin<240;pin++)
 	{
 		find = 0;
 		row = left.Row[0] - pin;
+		if(row<10)break;
 		colmin = left.Col[pin - 1] - 10;
 		colmax = left.Col[pin - 1] + 10;
 		for(col = colmin;col <= colmax;col++)
 		{
-			if(col < COL - 5 && col > 5)
+		    if(col<5) col=5;
+			if(col < COL - 5)
 			{
 				if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col + 1] == BLACK_IMG)
 				{
@@ -476,47 +478,6 @@ void left_jump()
 			break;
 		}
     }
-	for(pin = 5;pin < 240;pin++)
-	{
-        if(left.Row[4] == 254)
-		{
-			break;
-		}
-		row = left.Row[pin - 1];
-		col = left.Col[pin - 1];
-		if(row < 10 || col < 10 || col > COL-10)
-		{
-			break;
-		}
-		for(i = 0;i < 8;i++)
-		{
-			row = row + rowcheack[i];
-			col = col + colcheack[i];
-			if(IMG_DATA[row][col] == BLACK_IMG)
-			{
-				row_temp = row;
-				col_temp = col;
-				for(j = 8;j < 12;j++)
-				{
-					row_temp = row_temp + rowcheack[j];
-					col_temp = col_temp + colcheack[j];
-					if(IMG_DATA[row_temp][col_temp] == WHITE_IMG)
-					{
-						whitecounter++;
-					}
-				}
-			}
-			if(whitecounter != 0)
-			{
-				whitecounter = 0;
-				left.Row[pin] = row;
-				left.Col[pin] = col;
-				IMG_DATA[row][col] = RED_IMG;
-				L_lenth++;
-				break;
-			}
-		}
-	}
 	if(L_lenth<=5)
 	{
 	    left_flag=0;
@@ -527,27 +488,29 @@ void left_jump()
 }
 void right_jump()
 {
-	int pin, i, j;
+	int pin;//, i, j;
 	int row, col,find;
-	int row_temp, col_temp;
-	int whitecounter = 0;
+//	int row_temp, col_temp;
+//	int whitecounter = 0;
     int colmin, colmax;
-	int rowcheack[12] = {-1, 1, -1, 0, 2, 0, 0, -1, -1, 1, 0, 1};
-	int colcheack[12] = {-1, 0, 1, 1, -2, 1, 1, 0, 0, -1, 2, -1};
+//	int rowcheack[12] = {-1, 1, -1, 0, 2, 0, 0, -1, -1, 1, 0, 1};
+//	int colcheack[12] = {-1, 0, 1, 1, -2, 1, 1, 0, 0, -1, 2, -1};
     if(right.Row[0] == 254)
 	{
 		return;
 	}
     right_flag=1;
-    for(pin=1,row=right.Row[0] - pin;pin<5;pin++)
+    for(pin=1,row=right.Row[0] - pin;pin<240;pin++)
 	{
 		find = 0;
 		row = right.Row[0] - pin;
+		if(row<10)break;
 		colmin = right.Col[pin - 1] - 10;
 		colmax = right.Col[pin - 1] + 10;
 		for(col = colmax;col >= colmin;col--)
 		{
-			if(col < COL - 5 && col > 5)
+		    if(col > COL - 5) col=COL - 5;
+			if(col > 5)
 			{
 				if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col - 1] == BLACK_IMG)
 				{
@@ -566,47 +529,6 @@ void right_jump()
 		if(find == 0)
 		{
 			break;
-		}
-	}
-	for(pin = 5;pin < 240;pin++)
-	{
-		if(right.Row[4] == 254)
-		{
-			break;
-		}
-		row = right.Row[pin - 1];
-		col = right.Col[pin - 1];
-		if(row < 10 || col < 10 || col > COL-10)
-		{
-			break;
-		}
-		for(i = 0;i < 8;i++)
-		{
-			row = row + rowcheack[i];
-			col = col + colcheack[i];
-			if(IMG_DATA[row][col] == BLACK_IMG)
-			{
-				row_temp = row;
-				col_temp = col;
-				for(j = 8;j < 12;j++)
-				{
-					row_temp = row_temp + rowcheack[j];
-					col_temp = col_temp + colcheack[j];
-					if(IMG_DATA[row_temp][col_temp] == WHITE_IMG)
-					{
-						whitecounter++;
-					}
-				}
-			}
-			if(whitecounter != 0)
-			{
-				whitecounter = 0;
-				right.Row[pin] = row;
-				right.Col[pin] = col;
-				IMG_DATA[row][col] = BLUE_IMG;
-				R_lenth++;
-				break;
-			}
 		}
 	}
 	if(R_lenth<=5)
@@ -663,13 +585,13 @@ void fixpoint()//左右边线起始点的修正
 		col = (int)(DownPointCol - k * pin);
 		if(col > -1 && col < COL && row >-1 && row < ROW)
 		{
-			if(IMG_DATA[row][col] == BLACK)
+			if(IMG_DATA[row][col] == BLACK_IMG)
 			{
 				BP++;
 			}
 		}
 	}
-	if(BP > 4)
+	if(BP > 8)
 	{
 		if(left.Row[0] < right.Row[0])
 		{
@@ -1356,7 +1278,7 @@ void RaceLine()
 //***************************************************************
 void Img_Deal()
 { 
-    if(stop==1) return;
+    if(stop==1)  return;
     Deal_Init();
     InitData();
     deal_flag=1;
@@ -1376,6 +1298,6 @@ void Img_Deal()
     RaceLine();
 	//seekfree_sendimg_03x(UART_2,IMG_DATA,188,120);//传输处理后图像
 	//Track();
-	//lcd_displayimage032_zoom(IMG_DATA,188,120,160,128);//图像显示
+  	//lcd_displayimage032_zoom(IMG_DATA,188,120,160,128);//图像显示
 	deal_flag=0;
 }

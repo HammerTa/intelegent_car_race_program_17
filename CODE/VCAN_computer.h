@@ -8,7 +8,7 @@
 #ifndef CODE_VCAN_COMPUTER_H_
 #define CODE_VCAN_COMPUTER_H_
 
-
+extern int send_flag;
 void bluesend(void);
 
 

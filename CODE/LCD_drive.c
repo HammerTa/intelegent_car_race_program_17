@@ -1,7 +1,7 @@
 /*
  * LCD_drive.c
  *
- *  Created on: 2022Äê3ÔÂ12ÈÕ
+ *  Created on: 2022å¹´3æœˆ12æ—¥
  *      Author: HammerTank
  */
 #include "headfile.h"
@@ -11,32 +11,55 @@ int key_1_staut=1;
 int key_2_staut=1;
 int key_3_staut=1;
 int key_4_staut=1;
-//µ±Ç°°´¼ü×´Ì¬
+int key_5_staut=1;
+int key_6_staut=1;
+int key_7_staut=1;
+int key_8_staut=1;
+int key_9_staut=1;
+int key_10_staut=1;
+int key_11_staut=1;
+int key_12_staut=1;
+int key_1_col_staut=1;
+int key_2_col_staut=1;
+int key_3_col_staut=1;
+//å½“å‰æŒ‰é”®çŠ¶æ€
 
 int key_1_staut0=0;
 int key_2_staut0=0;
 int key_3_staut0=0;
 int key_4_staut0=0;
-//ÉÏ´Î°´¼ü×´Ì¬
+int key_5_staut0=0;
+int key_6_staut0=0;
+int key_7_staut0=0;
+int key_8_staut0=0;
+int key_9_staut0=0;
+int key_10_staut0=0;
+int key_11_staut0=0;
+int key_12_staut0=0;
+int key_1_col_staut0=0;
+int key_2_col_staut0=0;
+int key_3_col_staut0=0;
+//ä¸Šæ¬¡æŒ‰é”®çŠ¶æ€
 
 int8 title1[20]="steer gear";
 int8 title2[20]="motor left";
 int8 title3[20]="motor right";
 int8 title4[20]="diff speed";
-//Ò³Ãæ±êÌâ
+//é¡µé¢æ ‡é¢˜
 
-float gear_data[4];//={duoji_kp0,duoji_kd0,duoji_kp,duoji_kd};//¶æ»ú
-float L_motor_data[3];//={left_motor_kp,left_motor_ki,left_motor_kd};//×óµç»ú
-float R_motor_data[3];//={right_motor_kp,right_motor_ki,right_motor_kd};//ÓÒµç»ú
-float speed_data[2];//={setspeed,chasu_k};//²îËÙÓëËÙ¶ÈÉèÖÃ
-//ĞèÒª¸Ä±äµÄÊı¾İ
+float gear_data[4];//={duoji_kp0,duoji_kd0,duoji_kp,duoji_kd};//èˆµæœº
+float L_motor_data[3];//={left_motor_kp,left_motor_ki,left_motor_kd};//å·¦ç”µæœº
+float R_motor_data[3];//={right_motor_kp,right_motor_ki,right_motor_kd};//å³ç”µæœº
+float speed_data[3];//={setspeed,chasu_k};//å·®é€Ÿä¸é€Ÿåº¦è®¾ç½®
+//éœ€è¦æ”¹å˜çš„æ•°æ®
 
 int key_value=0;
+int key_value_col=0;
 int show_value=0;
 uint8 show_img=0;
-int title_flag=0;
+int title_flag=4;
 int point_flag=1;
-int key_time=0;//°´¼üÊ±¼ä
+int key_time=0;//æŒ‰é”®æ—¶é—´
 uint32 Save[100];
 
 
@@ -55,7 +78,8 @@ void drive_data_get()
     R_motor_data[1]=right_motor_ki;
     R_motor_data[2]=right_motor_kd;
     speed_data[0]=(float)setspeed;
-    speed_data[1]=chasu_k;
+    speed_data[1]=(float)min_speed;
+    speed_data[2]=chasu_k;
 }
 
 void show()
@@ -87,16 +111,85 @@ void show()
         case 3:
             lcd_showstr(0,0,title4);
             lcd_showfloat(0,1,speed_data[0],2,1);
-            lcd_showfloat(0,2,speed_data[1],2,2);
+            lcd_showfloat(0,2,speed_data[1],2,1);
+            lcd_showfloat(0,3,speed_data[2],2,2);
             lcd_showint32(0,7,point_flag,5);
             break;
         case 4:
-            lcd_showstr(0,0,"Ready?");
-            lcd_showfloat(0,1,R_S,2,4);
-            lcd_showfloat(0,2,L_S,2,4);
+            lcd_showstr(0,0,"LiveData");
+            lcd_showfloat(0,1,duoji_kp,2,4);
+            lcd_showfloat(0,2,(float)error,2,4);
+            lcd_showfloat(0,3,error_k,2,5);
+            lcd_showfloat(0,4,duoji_kp0,2,5);
+            lcd_showfloat(0,5,duoji_kp1,2,5);
+            lcd_showfloat(0,6,temp_cheak,2,5);
             lcd_showint32(0,7,point_flag,5);
             break;
     }
+}
+
+void key_scan_row()
+{
+    gpio_init(KEY_1,GPI,0,PULLDOWN);
+    gpio_init(KEY_2,GPI,0,PULLDOWN);
+    gpio_init(KEY_3,GPI,0,PULLDOWN);
+    gpio_init(KEY_4,GPI,0,PULLDOWN);
+    gpio_init(KEY_COL1,GPO,1,PUSHPULL);
+    gpio_init(KEY_COL2,GPO,0,PUSHPULL);
+    gpio_init(KEY_COL3,GPO,0,PUSHPULL);
+    key_1_staut0=key_1_staut;
+    key_2_staut0=key_2_staut;
+    key_3_staut0=key_3_staut;
+    key_4_staut0=key_4_staut;
+    key_1_staut=gpio_get(KEY_1);
+    key_2_staut=gpio_get(KEY_2);
+    key_3_staut=gpio_get(KEY_3);
+    key_4_staut=gpio_get(KEY_4);
+    if(key_1_staut==1 && key_1_staut0==0) key_value=1;
+    if(key_2_staut==1 && key_2_staut0==0) key_value=2;
+    if(key_3_staut==1 && key_3_staut0==0) key_value=3;
+    if(key_4_staut==1 && key_4_staut0==0) key_value=4;
+    systick_delay_ms(STM0,50);
+    gpio_init(KEY_1,GPI,0,PULLDOWN);
+    gpio_init(KEY_2,GPI,0,PULLDOWN);
+    gpio_init(KEY_3,GPI,0,PULLDOWN);
+    gpio_init(KEY_4,GPI,0,PULLDOWN);
+    gpio_init(KEY_COL1,GPO,0,PUSHPULL);
+    gpio_init(KEY_COL2,GPO,1,PUSHPULL);
+    gpio_init(KEY_COL3,GPO,0,PUSHPULL);
+    key_5_staut0=key_5_staut;
+    key_6_staut0=key_6_staut;
+    key_7_staut0=key_7_staut;
+    key_8_staut0=key_8_staut;
+    key_5_staut=gpio_get(KEY_1);
+    key_6_staut=gpio_get(KEY_2);
+    key_7_staut=gpio_get(KEY_3);
+    key_8_staut=gpio_get(KEY_4);
+    if(key_5_staut==1 && key_5_staut0==0) key_value=5;
+    if(key_6_staut==1 && key_6_staut0==0) key_value=6;
+    if(key_7_staut==1 && key_7_staut0==0) key_value=7;
+    if(key_8_staut==1 && key_8_staut0==0) key_value=8;
+    systick_delay_ms(STM0,50);
+    gpio_init(KEY_1,GPI,0,PULLDOWN);
+    gpio_init(KEY_2,GPI,0,PULLDOWN);
+    gpio_init(KEY_3,GPI,0,PULLDOWN);
+    gpio_init(KEY_4,GPI,0,PULLDOWN);
+    gpio_init(KEY_COL1,GPO,0,PUSHPULL);
+    gpio_init(KEY_COL2,GPO,0,PUSHPULL);
+    gpio_init(KEY_COL3,GPO,1,PUSHPULL);
+    key_9_staut0=key_9_staut;
+    key_10_staut0=key_10_staut;
+    key_11_staut0=key_11_staut;
+    key_12_staut0=key_12_staut;
+    key_9_staut=gpio_get(KEY_1);
+    key_10_staut=gpio_get(KEY_2);
+    key_11_staut=gpio_get(KEY_3);
+    key_12_staut=gpio_get(KEY_4);
+    if(key_9_staut==1 && key_9_staut0==0) key_value=9;
+    if(key_10_staut==1 && key_10_staut0==0) key_value=10;
+    if(key_11_staut==1 && key_11_staut0==0) key_value=11;
+    if(key_12_staut==1 && key_12_staut0==0) key_value=12;
+    systick_delay_ms(STM0,50);
 }
 
 void key_scan()
@@ -117,7 +210,7 @@ void key_scan()
     if(key_2_staut==1 && key_2_staut0==0) key_value=2;
     if(key_3_staut==1 && key_3_staut0==0) key_value=3;
     if(key_4_staut==1 && key_4_staut0==0) key_value=4;
-    systick_delay_ms(STM0,10);
+    systick_delay_ms(STM0,50);
 }
 
 void data_change(int key_input)
@@ -146,31 +239,19 @@ void data_change(int key_input)
             switch(title_flag)
             {
                 case 0:
-                    gear_data[point_flag-1]+=0.1;
+                    gear_data[point_flag-1]-=1;
                     break;
                 case 1:
-                    if(point_flag==2)
-                    {
-                        L_motor_data[point_flag-1]+=0.1;
-                    }
-                    else
-                        L_motor_data[point_flag-1]+=1;
+                    L_motor_data[point_flag-1]-=1;
                     break;
                 case 2:
-                    if(point_flag==2)
-                    {
-                        R_motor_data[point_flag-1]+=0.1;
-                    }
-                    else
-                        R_motor_data[point_flag-1]+=1;
+                    R_motor_data[point_flag-1]-=1;
                     break;
                 case 3:
-                    if(point_flag==1)
-                    {
-                        speed_data[point_flag-1]+=1;
-                    }
+                    if(point_flag==3)
+                        speed_data[point_flag-1]-=0.01;
                     else
-                        speed_data[point_flag-1]+=0.01;
+                        speed_data[point_flag-1]-=5;
                     break;
                 case 4:
                     break;
@@ -181,37 +262,151 @@ void data_change(int key_input)
             switch(title_flag)
             {
                 case 0:
-                    gear_data[point_flag-1]-=0.1;
+                    gear_data[point_flag-1]+=1;
                     break;
                 case 1:
-                    if(point_flag==2)
-                    {
-                        L_motor_data[point_flag-1]-=0.1;
-                    }
-                    else
-                        L_motor_data[point_flag-1]-=1;
+                        L_motor_data[point_flag-1]+=1;
                     break;
                 case 2:
-                    if(point_flag==2)
-                    {
-                        R_motor_data[point_flag-1]-=0.1;
-                    }
-                    else
-                        R_motor_data[point_flag-1]-=1;
+                        R_motor_data[point_flag-1]+=1;
                     break;
                 case 3:
-                    if(point_flag==1)
-                        speed_data[point_flag-1]-=1;
+                    if(point_flag==3)
+                        speed_data[point_flag-1]+=0.01;
                     else
-                        speed_data[point_flag-1]-=0.01;
+                        speed_data[point_flag-1]+=5;
                     break;
                 case 4:
                     eeprom_erase_sector(0);
                     systick_delay_ms(STM0,1000);
                     Data_save();
-                    lcd_showstr(0,7,"GO!");
                     systick_delay_ms(STM0,1000);
                     changing();
+                    key_value=0;
+                    break;
+            }
+            key_value=0;
+            break;
+        case 5:
+            lcd_clear(WHITE);
+            title_flag--;
+            if(title_flag<0)
+            {
+                title_flag=4;
+            }
+            key_value=0;
+            point_flag=1;
+            break;
+        case 6:
+            point_flag--;
+            if(point_flag<1)
+            {
+                point_flag=4;
+            }
+            key_value=0;
+            break;
+        case 7:
+            switch(title_flag)
+            {
+                case 0:
+                    gear_data[point_flag-1]-=1;
+                    break;
+                case 1:
+                    L_motor_data[point_flag-1]-=1;
+                    break;
+                case 2:
+                    R_motor_data[point_flag-1]-=1;
+                    break;
+                case 3:
+                    if(point_flag==3)
+                        speed_data[point_flag-1]-=0.1;
+                    else
+                        speed_data[point_flag-1]-=1;
+                    break;
+                case 4:
+                    break;
+            }
+            key_value=0;
+            break;
+        case 8:
+            switch(title_flag)
+            {
+                case 0:
+                    gear_data[point_flag-1]+=1;
+                    break;
+                case 1:
+                        L_motor_data[point_flag-1]+=1;
+                    break;
+                case 2:
+                        R_motor_data[point_flag-1]+=1;
+                    break;
+                case 3:
+                    if(point_flag==3)
+                        speed_data[point_flag-1]+=0.1;
+                    else
+                        speed_data[point_flag-1]+=1;
+                    break;
+                case 4:
+                    break;
+            }
+            key_value=0;
+            break;
+        case 9:
+            eeprom_erase_sector(0);
+            systick_delay_ms(STM0,1000);
+            Data_save();
+            send_flag=1;
+            systick_delay_ms(STM0,1000);
+            changing();
+            key_value=0;
+            break;
+        case 10:
+            if(pwm0_flag==1) pwm0_flag=0;
+            else pwm0_flag=1;
+            key_value=0;
+            break;
+        case 11:
+            switch(title_flag)
+            {
+                case 0:
+                    gear_data[point_flag-1]-=0.1;
+                    break;
+                case 1:
+                    L_motor_data[point_flag-1]-=0.1;
+                    break;
+                case 2:
+                    R_motor_data[point_flag-1]-=0.1;
+                    break;
+                case 3:
+                    if(point_flag==3)
+                        speed_data[point_flag-1]-=0.01;
+                    else
+                        speed_data[point_flag-1]-=0.1;
+                    break;
+                case 4:
+                    break;
+            }
+            key_value=0;
+            break;
+        case 12:
+            switch(title_flag)
+            {
+                case 0:
+                    gear_data[point_flag-1]+=0.1;
+                    break;
+                case 1:
+                        L_motor_data[point_flag-1]+=0.1;
+                    break;
+                case 2:
+                        R_motor_data[point_flag-1]+=0.1;
+                    break;
+                case 3:
+                    if(point_flag==3)
+                        speed_data[point_flag-1]+=0.01;
+                    else
+                        speed_data[point_flag-1]+=0.1;
+                    break;
+                case 4:
                     break;
             }
             key_value=0;
@@ -232,7 +427,8 @@ void changing()
     right_motor_ki=R_motor_data[1];
     right_motor_kd=R_motor_data[2];
     setspeed=(int)speed_data[0];
-    chasu_k=speed_data[1];
+    min_speed=speed_data[1];
+    chasu_k=speed_data[2];
     pwm0_flag=0;
     stop=0;
     speed_error_L0=0;
@@ -241,8 +437,11 @@ void changing()
     speed_error_R0=0;
     speed_error_R1=0;
     speed_error_R2=0;
+    error=0;
+    error0=0;
     left_pwm=0;
     right_pwm=0;
+
 }
 
 void Data_save()
@@ -258,7 +457,8 @@ void Data_save()
     Save[8]=(uint32)(R_motor_data[1]*10);
     Save[9]=(uint32)(R_motor_data[2]*10);
     Save[10]=(uint32)(speed_data[0]*10);
-    Save[11]=(uint32)(speed_data[1]*100);
+    Save[11]=(uint32)(speed_data[1]*10);
+    Save[12]=(uint32)(speed_data[2]*100);
     for(int i=0;i<100;i++)
     {
         eeprom_page_program(0,i,&Save[i]);
@@ -282,7 +482,8 @@ void Read_data()
     R_motor_data[1]=0.1*(float)Save[8];
     R_motor_data[2]=0.1*(float)Save[9];
     speed_data[0]=0.1*(float)Save[10];
-    speed_data[1]=0.01*(float)Save[11];
+    speed_data[1]=0.1*(float)Save[11];
+    speed_data[2]=0.01*(float)Save[12];
 }
 
 void long_prass_1(int key_press)
@@ -293,12 +494,17 @@ void long_prass_1(int key_press)
         key_value=1;
         key_time=0;
     }
-}//ÈıºÅ³¤°´
+}//ä¸‰å·é•¿æŒ‰
+
+void show_key()
+{
+    lcd_showint32(1,1,key_value,5);
+}
 
 void key_control()
 {
-//    drive_data_get();
     key_scan();
+    //key_scan_row();
     long_prass_1(key_value);
     data_change(key_value);
     show();
