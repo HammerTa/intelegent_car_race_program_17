@@ -8,8 +8,13 @@ unsigned char stop=1;//停车标志位，置1表示停车
 unsigned char go=0;//直行标志位，1表示直行
 unsigned char deal_flag=0;//处理标志位
 unsigned char fork_flag=0;//三叉标志位
+unsigned char T_go_flag=0;//T弯补线标志位，0右1左
 unsigned char fork_turn=0;//1左，2右
+ALL_enum element_flag=NO_JUGED;
 FORK_enum Fork_Flag=NO_FORK;
+T_CONNER_enum T_flag=NO_T;
+Garage_enmum Garage_flag=GET_OUT;
+Roundabout_enmum Roundabout_flag=NO_ROUND;
 //int i = 0,j = 0;
 
 //********************************************
@@ -19,8 +24,10 @@ int right_flag = 0;		//右起点存在标志
 int left_flag = 0;
 int right_start = 0;	//右边线起点行
 int left_start = 0;
-int right_end = 0;		//右边线终点行
-int left_end = 0;
+int right_end_row = 0;		//右边线终点行
+int left_end_row = 0;
+int right_end_col = 0;      //右边线终点行
+int left_end_col = 0;
 int middle_start = 0;	//中线起点行
 int middle_end = 0;
 int middleline[240];
@@ -57,6 +64,7 @@ struct Vector
 struct DIV RacingLine;//目标线路
 struct DIV left,right;//左右边线
 struct DIV forck_L,forck_R;//三叉判断线路
+struct DIV T_line;//T弯判断线
 struct DIV forck_line_L,forck_line_R;//三叉补线线路
 struct APEX left_apex,right_apex;
 struct AG right_ag,left_ag;//寻找弯心所需变量
@@ -80,6 +88,7 @@ float Angle_end;
 float Angle_End[10]={0};
 float ang_l,ang_r,ang;//三叉角度判断
 float L_S,R_S;//边界方差
+float K_left,K_right;
 float CorssCol=0;
 //*********************************************
 
@@ -109,25 +118,25 @@ int weight[120]={
 2,2,2,2,2,2,2,2,2,2,//11-20
 3,3,3,3,3,3,3,3,3,3,//21-30
 4,4,4,4,4,4,4,4,4,4,//31-40
-7,7,7,7,7,7,7,7,7,7,//41-50
+8,8,8,8,8,8,8,8,8,8,//41-50
 10,10,10,10,10,10,10,10,10,10,//51-60
 12,12,12,12,12,12,12,12,12,12,//61-70
 14,14,14,14,14,14,14,14,14,14,//71-80
-9,9,9,9,9,9,9,9,9,9,//81-90
-5,5,5,5,5,5,5,5,5,5,//91-100
-4,4,4,4,4,4,4,4,4,4,//101-110
-0,0,0,0,0,0,0,0,0,0,//111-120
+16,16,16,16,16,16,16,16,16,16,//81-90
+10,10,10,10,10,10,10,10,10,10,//91-100
+8,8,8,8,8,8,8,8,8,8,//101-110
+4,4,4,4,4,4,4,4,4,4,//111-120
 };
 
 //--------------------------
 int TrackWild[120]={
-        16,17,19,20,21,22,23,25,26,27,28,29,31,32,33,34,35,37,38,
-        39,40,41,43,44,45,46,47,49,50,51,52,53,55,56,57,58,59,61,
-        62,63,64,65,67,68,69,70,71,73,74,75,76,77,79,80,81,82,83,
-        85,86,87,88,89,91,92,93,94,95,97,98,99,100,101,103,104,105,106,
-        107,109,110,111,112,113,115,116,117,118,119,121,122,123,124,125,127,128,129,
-        130,131,133,134,135,136,137,139,140,141,142,143,145,146,147,148,149,151,152,
-        153,154,155,157,158,159};
+        20,21,22,24,25,26,28,29,30,32,33,34,35,37,38,39,41,42,43,
+        45,46,47,48,50,51,52,54,55,56,58,59,60,61,63,64,65,67,68,
+        69,71,72,73,74,76,77,78,80,81,82,84,85,86,87,89,90,91,93,
+        94,95,97,98,99,100,102,103,104,106,107,108,110,111,112,113,115,116,117,
+        119,120,121,123,124,125,126,128,129,130,132,133,134,136,137,138,139,141,142,
+        143,145,146,147,149,150,151,152,154,155,156,158,159,160,162,163,164,165,167,
+        168,169,171,172,173,175};
 
 
 //***************************************************************
@@ -150,16 +159,15 @@ void Deal_Init()
    //参数初始化
     right_flag = 0;left_flag = 0;
     right_start = 254;left_start = 254;
-    right_end = 120;left_end = 120;
     middle_start = 0;middle_end = 0;
-    for(i=0;i<ROW;i++)
-    {
-        for(j=0;j<COL;j++)
-        {
-            IMG_DATA[i][j]=mt9v03x_image[i][j];
-        }
-    }
-    Threshold=GetOSTU(IMG_DATA);
+//    for(i=0;i<ROW;i++)
+//    {
+//        for(j=0;j<COL;j++)
+//        {
+//            IMG_DATA[i][j]=mt9v03x_image[i][j];
+//        }
+//    }
+    Threshold=GetOSTU(IMG_DATA)-20;
     for(i=0;i<ROW;i++)
     {
         for(j=0;j<COL;j++)
@@ -192,6 +200,8 @@ void Deal_Init()
 		    forck_R.Row[pin]=254;
 		    forck_R.Col[pin]=254;
 		}
+		T_line.Row[pin]=254;
+		T_line.Col[pin]=254;
         RacingLine.Row[pin]=254;
         RacingLine.Col[pin]=254;
         middleline[pin]=254;
@@ -306,10 +316,70 @@ void Deal_Init()
      W_percent=1.0*White_point/point;
      return W_percent;
  }
+ float CrossRow_L(int star)
+ {
+      float W_percent=0;
+      int i,j;
+      int White_point=0;
+      int Black_point=0;
+      int point=470;
+      int row[5];
+      if(star>=100) return -1;
+      for(i=0;i<5;i++) row[i]=star+5*i;
+      for(i=0;i<5;i++)
+      {
+          for(j=94;j>5;j--)
+          {
+              if(IMG_DATA[row[i]][j]==WHITE_IMG)
+                  White_point++;
+              else if(IMG_DATA[row[i]][j]==BLACK_IMG)
+              {
+                  Black_point++;
+                  if(Black_point>4)
+                  {
+                      Black_point=0;
+                      break;
+                  }
+              }
+          }
+      }
+      W_percent=(float)White_point/point;
+      return W_percent;
+ }
 
+ float CrossRow_R(int star)
+ {
+      float W_percent=0;
+      int i,j;
+      int White_point=0;
+      int Black_point=0;
+      int point=470;
+      int row[5];
+      if(star>=100) return -1;
+      for(i=0;i<5;i++) row[i]=star+5*i;
+      for(i=0;i<5;i++)
+      {
+          for(j=94;j<183;j++)
+          {
+              if(IMG_DATA[row[i]][j]==WHITE_IMG)
+                  White_point++;
+              else if(IMG_DATA[row[i]][j]==BLACK_IMG)
+              {
+                  Black_point++;
+                  if(Black_point>4)
+                  {
+                      Black_point=0;
+                      break;
+                  }
+              }
+          }
+      }
+      W_percent=(float)White_point/point;
+      return W_percent;
+ }
  ///***************************************************************
  //* 函数名称： S_jugde
- //* 功能说明： 标准差判断
+ //* 功能说明： 标准差判断，行为y
  //* 函数返回： 边界线与拟合曲线标准差
  //* 备 注：    判断边界标准误差
  //***************************************************************
@@ -374,6 +444,7 @@ void Deal_Init()
      S=S/sqrt(1.0*num);
      return S;
  }
+
 
 ///***************************************************************
 //* 函数名称： 
@@ -468,6 +539,9 @@ void left_jump()
 						IMG_DATA[row][col + 1] = RED_IMG;
 						find = 1;
 						L_lenth++;
+
+						left_end_row=row;
+						left_end_col=col;
 						break;
 					}
 				}
@@ -484,7 +558,7 @@ void left_jump()
 	    left.Row[0]=254;
 	    left.Col[0]=254;
 	}
-    left_end=row;
+
 }
 void right_jump()
 {
@@ -519,8 +593,11 @@ void right_jump()
 						right.Row[pin] = row;
 						right.Col[pin] = col - 1;
 						IMG_DATA[row][col - 1] = BLUE_IMG;
+
 						find = 1;
 						R_lenth++;
+						right_end_row=row;
+						right_end_col=col;
 						break;
 					}
 				}
@@ -537,8 +614,8 @@ void right_jump()
 	    right.Row[0]=254;
 	    right.Col[0]=254;
 	}
-  right_end=row;
   
+
 }
 
 //***************************************************************
@@ -633,6 +710,7 @@ void Left_Apex()
     left_apex.Apex_Row=row_flag;
     left_apex.Apex_Col=col_flag;
 	L_S=S_jugde(left.Col,left.Row,left_apex.Mark);
+	K_left=1.0*(left_apex.Apex_Row-left.Row[0])/(left_apex.Apex_Col-left.Col[0]);
 }//寻找左弯心
 
 void Right_Apex()
@@ -661,6 +739,7 @@ void Right_Apex()
     right_apex.Apex_Row=row_flag;
     right_apex.Apex_Col=col_flag;
 	R_S=S_jugde(right.Col,right.Row,right_apex.Mark);
+	K_right=(right_apex.Apex_Row-right.Row[0])/(right_apex.Apex_Col-right.Col[0]);
 }//寻找右弯心
 
 //***************************************************************
@@ -911,7 +990,7 @@ void Roundabout_Deal()
 }
 
 
-//***************************************************************
+//**************************************************************
 //* 函数名称： T_Conner_Deal
 //* 功能说明： T弯处理函数
 //* 函数返回：
@@ -919,9 +998,79 @@ void Roundabout_Deal()
 //**************************************************************
 void T_Conner_Deal()
 {
-
+    float L_cross,R_cross,Col_cross;
+    int star_row;
+    Col_cross=Cross_col();
+    star_row=(ROW-(int)ROW*Col_cross)+5;
+    if(star_row>100) return;
+    L_cross=CrossRow_L(star_row);
+    R_cross=CrossRow_R(star_row);
+    if(element_flag==IN_JUGED)
+    {
+        if(T_flag==NO_T) return;
+    }
+    if(T_flag==IN_T)
+    {
+        if(Col_cross>0.8)
+        {
+            T_flag=NO_T;
+            if(T_go_flag==1) T_go_flag=0;
+            else T_go_flag=1;
+            element_flag=NO_JUGED;
+        }
+        else
+        {
+            //gpio_set(FMQ,1);
+            return;
+        }
+    }
+    if(L_cross>0.7 && R_cross>0.7 && Col_cross<0.8 && T_flag==NO_T)
+    {
+        int row_min,row_max,row,col;
+        int sum=0;
+        row_min=star_row-15;
+        row_max=star_row+15;
+        for(col=5;col<COL-5;col+=5)
+        {
+            for(row=row_max;row>row_min;row--)
+            {
+                if(row<5||row>115) break;
+                if(IMG_DATA[row][col]==WHITE_IMG&&IMG_DATA[row-1][col]==WHITE_IMG)
+                {
+                    if(IMG_DATA[row-2][col]==BLACK_IMG && IMG_DATA[row-3][col]==BLACK_IMG)
+                    {
+                        sum++;
+                    }
+                }
+            }
+        }
+        if(sum>20)
+        {
+            element_flag=IN_JUGED;
+            T_flag=IN_T;
+            //gpio_set(FMQ,1);
+        }
+    }
 }
 
+//**************************************************************
+//* 函数名称： Cross_deal
+//* 功能说明： 十字识别
+//* 函数返回：
+//* 备 注：
+//**************************************************************
+//void Cross_deal()
+//{
+//    float L_cross,R_cross,Col_cross;
+//    int T_flag=0;
+//    L_cross=CrossRow_L();
+//    R_cross=CrossRow_R();
+//    Col_cross=Cross_col();
+//    if(L_cross>0.85 && R_cross>0.85 && Col_cross>0.85)
+//    {
+//        T_flag=IN_T;
+//    }
+//}
 
 //***************************************************************
 //* 函数名称： Fork_Deal
@@ -938,11 +1087,16 @@ void Fork_Deal()
     B_L=Black_White_Zone(5,80,25,110);
     B_Top=Black_White_Zone(60,15,115,30);
     B_R=Black_White_Zone(170,80,185,110);
+    if(element_flag==IN_JUGED)
+    {
+        if(Fork_Flag==NO_FORK) return;
+    }
     if(Fork_Flag==IN_FORK)
     {
         if(B_Top!=1)
         {
             Fork_Flag=NO_FORK;
+            element_flag=NO_JUGED;
             return;
         }
     }
@@ -954,14 +1108,12 @@ void Fork_Deal()
         {
             if(IMG_DATA[i][j]==WHITE_IMG && IMG_DATA[i][j+1]==BLACK_IMG)
             {
-                IMG_DATA[i][j+1]=RED_IMG;
                 forck_L.Row[0]=i;
                 forck_L.Col[0]=j+1;
                 F_L_flag=1;
             }
             if(IMG_DATA[i][j]==BLACK_IMG && IMG_DATA[i][j+1]==WHITE_IMG)
             {
-                IMG_DATA[i][j+1]=BLUE_IMG;
                 forck_R.Row[0]=i;
                 forck_R.Col[0]=j-1;
                 F_R_flag=1;
@@ -1002,7 +1154,6 @@ void Fork_Deal()
                     {
                         forck_L.Row[pin] = row;
                         forck_L.Col[pin] = col + 2;
-                        IMG_DATA[row][col + 2] = RED_IMG;
                         find = 1;
                         break;
                     }
@@ -1032,7 +1183,6 @@ void Fork_Deal()
                     {
                         forck_R.Row[pin] = row;
                         forck_R.Col[pin] = col - 2;
-                        IMG_DATA[row][col - 2] = BLUE_IMG;
                         find = 1;
                         break;
                     }
@@ -1057,7 +1207,7 @@ void Fork_Deal()
     ang=ang_r-ang_l;
     if(ang>150 && ang<180)
     {
-        fork_flag=1;
+        element_flag=IN_JUGED;
         Fork_Flag=IN_FORK;
     }
 }
@@ -1070,7 +1220,29 @@ void Fork_Deal()
 //***************************************************************
 void Garage_Deal()
 {
+    if(Garage_flag==GET_OUT)
+    {
+        if(CorssCol<0.7) Garage_flag=NO_GARAGE;
+        return;
+    }
+    else if(Garage_flag==NO_GARAGE)
+    {
+        int row,col,pin;
+        int col_min,col_max;
+        int sum,sum0,count;
+        for(row=120,pin=0;row>20;row-=5)
+        {
+            col_min=COL/2-TrackWild[row]/2;
+            col_max=COL/2+TrackWild[row]/2;
+            for(col=col_min;col<col_max;col++)
+            {
+                if(IMG_DATA[row][col]==WHITE_IMG)
+                {
 
+                }
+            }
+        }
+    }
 }
 
 void Track()
@@ -1206,7 +1378,7 @@ void RacingLine_R(int k)
 //***************************************************************
 void Racing_Line_Fork_L()
 {
-    gpio_set(FMQ,1);
+//    gpio_set(FMQ,1);
 //    if(left.Col[0]>right.Col[0]) RacingLine_R(2);
 //    else RacingLine_L(5);
 //    return;
@@ -1218,6 +1390,7 @@ void Racing_Line_Fork_L()
     r_flag=0;
     i=0;
     row=forck_L.Row[0];
+    gpio_set(FMQ,1);
     for(pin=0;pin<240;pin++)
     {
         flag=119-pin;
@@ -1248,9 +1421,82 @@ void Racing_Line_Fork_L()
     return;
 }
 
+//**************************************************************
+//* 函数名称： Raceing_line_T_L
+//* 功能说明： T补线，向左
+//* 函数返回：
+//* 备 注：
+//**************************************************************
+void Raceing_line_T_L()
+{
+    int i,pin;
+    if(left_flag==0&&right_flag==0)
+    {
+        right_flag=1;
+        left_flag=1;
+        for(i=120,pin=0;i>60;i--)
+        {
+            middleline[pin]=0;
+            mid_row[pin]=i;
+            pin++;
+        }
+    }
+    else if(left_flag==1)
+    {
+        RacingLine_L(10);
+    }
+    else
+    {
+        RacingLine_R(1);
+    }
+}
+
+//**************************************************************
+//* 函数名称： Raceing_line_T_R
+//* 功能说明： T补线向右
+//* 函数返回：
+//* 备 注：
+//**************************************************************
+void Raceing_line_T_R()
+{
+    int i,pin;
+    if(left_flag==0&&right_flag==0)
+    {
+        right_flag=1;
+        left_flag=1;
+        for(i=120,pin=0;i>60;i--)
+        {
+            middleline[pin]=COL;
+            mid_row[pin]=i;
+            pin++;
+        }
+    }
+    else if(right_flag==1)
+    {
+        RacingLine_R(10);
+    }
+    else
+    {
+        RacingLine_L(1);
+    }
+}
+
+
 void RaceLine()
 {
     if(Fork_Flag==IN_FORK) Racing_Line_Fork_L();
+    else if(T_flag==IN_T)
+    {
+        gpio_set(FMQ,1);
+        if(T_go_flag==0)
+        {
+            Raceing_line_T_R();//往后需要添加额外判断，向左或者向右
+        }
+        else
+        {
+            Raceing_line_T_L();
+        }
+    }
     else Racing_Line();
 }
 
@@ -1282,7 +1528,6 @@ void Img_Deal()
     Deal_Init();
     InitData();
     deal_flag=1;
-    //seekfree_sendimg_03x(UART_2,IMG_DATA,188,120);//传输原始图像
     CorssCol=Cross_col();
     if(CorssCol<0.1) CorssCol=0.1;
     protect();
@@ -1295,9 +1540,10 @@ void Img_Deal()
     Right_Apex();
     //Angle_IMG();
     Fork_Deal();
+    T_Conner_Deal();
     RaceLine();
 	//seekfree_sendimg_03x(UART_2,IMG_DATA,188,120);//传输处理后图像
 	//Track();
-  	//lcd_displayimage032_zoom(IMG_DATA,188,120,160,128);//图像显示
+  	//lcd_displayimage032_zoom((uint8)IMG_DATA,188,120,160,128);//图像显示
 	deal_flag=0;
 }

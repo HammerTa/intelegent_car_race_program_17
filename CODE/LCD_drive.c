@@ -239,19 +239,19 @@ void data_change(int key_input)
             switch(title_flag)
             {
                 case 0:
-                    gear_data[point_flag-1]-=1;
+                    gear_data[point_flag-1]-=0.1;
                     break;
                 case 1:
-                    L_motor_data[point_flag-1]-=1;
+                    L_motor_data[point_flag-1]-=0.1;
                     break;
                 case 2:
-                    R_motor_data[point_flag-1]-=1;
+                    R_motor_data[point_flag-1]-=0.1;
                     break;
                 case 3:
                     if(point_flag==3)
                         speed_data[point_flag-1]-=0.01;
                     else
-                        speed_data[point_flag-1]-=5;
+                        speed_data[point_flag-1]-=1;
                     break;
                 case 4:
                     break;
@@ -262,27 +262,21 @@ void data_change(int key_input)
             switch(title_flag)
             {
                 case 0:
-                    gear_data[point_flag-1]+=1;
+                    gear_data[point_flag-1]+=0.1;
                     break;
                 case 1:
-                        L_motor_data[point_flag-1]+=1;
+                        L_motor_data[point_flag-1]+=0.1;
                     break;
                 case 2:
-                        R_motor_data[point_flag-1]+=1;
+                        R_motor_data[point_flag-1]+=0.1;
                     break;
                 case 3:
                     if(point_flag==3)
                         speed_data[point_flag-1]+=0.01;
                     else
-                        speed_data[point_flag-1]+=5;
+                        speed_data[point_flag-1]+=1;
                     break;
                 case 4:
-                    eeprom_erase_sector(0);
-                    systick_delay_ms(STM0,1000);
-                    Data_save();
-                    systick_delay_ms(STM0,1000);
-                    changing();
-                    key_value=0;
                     break;
             }
             key_value=0;
@@ -357,7 +351,8 @@ void data_change(int key_input)
             Data_save();
             send_flag=1;
             systick_delay_ms(STM0,1000);
-            changing();
+            //changing();
+            changing_program();
             key_value=0;
             break;
         case 10:
@@ -441,7 +436,6 @@ void changing()
     error0=0;
     left_pwm=0;
     right_pwm=0;
-
 }
 
 void Data_save()
@@ -501,11 +495,39 @@ void show_key()
     lcd_showint32(1,1,key_value,5);
 }
 
+void changing_program()//代码调参
+{
+    duoji_kp0=1.2;
+    duoji_kd0=1.9;
+    duoji_kp1=20;
+    duoji_kd1=0;
+    left_motor_kp=200;
+    left_motor_ki=90;
+    left_motor_kd=80;
+    right_motor_kp=200;
+    right_motor_ki=90;
+    right_motor_kd=80;
+    setspeed=60;
+    min_speed=40;
+    chasu_k=0.0;
+    pwm0_flag=0;
+    stop=0;
+    speed_error_L0=0;
+    speed_error_L1=0;
+    speed_error_L2=0;
+    speed_error_R0=0;
+    speed_error_R1=0;
+    speed_error_R2=0;
+    error=0;
+    error0=0;
+    left_pwm=0;
+    right_pwm=0;
+}
 void key_control()
 {
-    key_scan();
-    //key_scan_row();
+    //key_scan();
+    key_scan_row();
     long_prass_1(key_value);
     data_change(key_value);
-    show();
+    //show();
 }

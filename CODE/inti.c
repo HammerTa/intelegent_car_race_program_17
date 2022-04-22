@@ -47,5 +47,6 @@ void inti_all()
 void PIT_init()
 {
     pit_interrupt_ms(CCU6_0, PIT_CH0, 5);//5ms÷–∂œ
+    pit_interrupt_ms(CCU6_0, PIT_CH1, 10);//5ms÷–∂œ
 }
 

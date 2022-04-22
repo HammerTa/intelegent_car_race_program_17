@@ -33,11 +33,11 @@ int ui_lim=0;
 int error=0;
 int error0=0;
 int lim_pwm=9000;
-float CS_lim=0.6;
+float CS_lim=0.4;
 float P_rate=0.1,D_rate=0;
-int e_lim=100;
+int e_lim=200;
 int ERROR[5]={0,0,0,0,0};
-static int COUNT=0;
+//static int COUNT=0;
 uint8 pwm0_flag=0;
 //================需要修改的================
 float duoji_kp,duoji_kd;    //舵机，用于打角转弯
@@ -99,7 +99,7 @@ void Count_init()
 void Control()
 {
     Speed_Get();
-    angle_deal();
+
     motor_DiffSpeed();
     motor_pid();
     if(stop==1)
@@ -117,7 +117,7 @@ void Control()
     {
         timestop++;
         time=0;
-        if(timestop>=6000) stop=1;
+        if(timestop>=36000) stop=1;
     }
     pwm_out();
 }
@@ -146,12 +146,12 @@ void PDChange(int er)
 //***************************************************************
 void angle_deal()
 {
-  int i,j;
+  int i;//,j;
   int weight_sum=0;
   //================================
   //=====计算打角偏差===============
   error0 = error;
-  if(left_flag==1||right_flag==1)
+  if(middleline[0]!=254)
   {
     error = 0;
     weight_sum = 0;
@@ -214,9 +214,9 @@ void angle_deal()
 void Speed_Get()
 {
     speed_l=-gpt12_get(encoder_GPT_l);
-    speed_r=gpt12_get(encoder_GPT_r);
-    //speed_l=speed_r;//编码器损坏，由于不需要差速暂时如此
+    speed_r=gpt12_get(encoder_GPT_r);//编码器损坏，停车不需要差速暂时如此
     //获得读数
+    if(stop==1) speed_l=speed_r;
     gpt12_clear(encoder_GPT_l);
     gpt12_clear(encoder_GPT_r);
     //清除读数
@@ -225,13 +225,13 @@ void Speed_Get()
 
 ///***************************************************************
 //* 函数名称： Gear_Box
-//* 功能说明： 电机PWM输出
+//* 功能说明： 变速
 //* 函数返回： 无
 //* 备 注：
 //***************************************************************
 void Gear_Box()
 {
-    CorssCol=1;
+    CorssCol=1;//注释此行可进行速度控制
     setspeed_used=(int)(setspeed*CorssCol);
     if(setspeed_used<min_speed) setspeed_used=min_speed;
 }
@@ -245,7 +245,7 @@ void Gear_Box()
 void motor_DiffSpeed()
 {
   Gear_Box();
-  chasu=(chasu_k*fabs(1.0*error))/(2+chasu_k*fabs(1.0*error))*setspeed_used;//差速计算公式
+  chasu=(chasu_k*fabs(1.0*(angle_pwm_out-S3010_Middle)))/(2+chasu_k*fabs(1.0*(angle_pwm_out-S3010_Middle)))*setspeed_used;//差速计算公式
   if(error==0)
   {
     setspeed_L=setspeed_used;
@@ -341,8 +341,8 @@ void motor_pid()
 //***************************************************************
 void pwm_out()
 {
-//    left_pwm_out=2500;
-//    right_pwm_out=-2500;//如果注释取消 则为开环
+//    left_pwm_out=-2500;
+//    right_pwm_out=0;//如果注释取消 则为开环
     if(pwm0_flag==1)
     {
         left_pwm_out=0;

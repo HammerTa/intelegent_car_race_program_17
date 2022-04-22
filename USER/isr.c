@@ -37,7 +37,7 @@ IFX_INTERRUPT(cc60_pit_ch1_isr, 0, CCU6_0_CH1_ISR_PRIORITY)
 {
 	enableInterrupts();//¿ªÆôÖÐ¶ÏÇ¶Ì×
 	PIT_CLEAR_FLAG(CCU6_0, PIT_CH1);
-
+	angle_deal();
 }
 
 IFX_INTERRUPT(cc61_pit_ch0_isr, 0, CCU6_1_CH0_ISR_PRIORITY)

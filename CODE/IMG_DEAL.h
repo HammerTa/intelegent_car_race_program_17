@@ -5,17 +5,36 @@
 
 typedef enum
 {
-    NO_FORK,
-    IN_FORK,
-    OUT_FORK,
-}FORK_enum;
+    NO_JUGED,
+    IN_JUGED,
+}ALL_enum;//所有元素标志位
 
 typedef enum
 {
+    NO_FORK,
+    IN_FORK,
+}FORK_enum;//三叉
+
+typedef enum
+{
+    NO_T,
+    IN_T,
+}T_CONNER_enum;//T弯
+
+typedef enum
+{
+    GET_OUT,
     READY,
-    IN,
-    TIMES,
-}Garage_enmum;
+    GET_IN,
+    NO_GARAGE,
+}Garage_enmum;//车库
+
+typedef enum
+{
+    GET_IN_ROUND,
+    GET_OUT_ROUND,
+    NO_ROUND,
+}Roundabout_enmum;//环岛
 //----------------函数定义区--------------
 void Img_Deal(void);
 void Deal_Init(void);
@@ -27,14 +46,11 @@ float Cross_col(void);
 extern int v;
    
 extern int dj_end;
-
  
 extern int right_flag;
 extern int left_flag;
 extern int right_start;
 extern int left_start;
-extern int right_end;
-extern int left_end;
 extern int middle_start;
 extern int middle_end;
 

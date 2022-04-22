@@ -44,8 +44,10 @@ void core1_main(void)
         {
             if(mt9v03x_finish_flag==1)
             {
-                Img_Deal();
                 mt9v03x_finish_flag=0;
+                memcpy(IMG_DATA,mt9v03x_image,sizeof(mt9v03x_image));
+                //seekfree_sendimg_03x(UART_2,mt9v03x_image,188,120);//´«ÊäÔ­Ê¼Í¼Ïñ
+                Img_Deal();
             }
         }
 //        else if(pwm0_flag==1) continue;

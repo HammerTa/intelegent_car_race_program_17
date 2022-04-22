@@ -97,13 +97,13 @@ void vcan_sendware(void *wareaddr, uint32_t waresize)
 void bluesend (void)
 {
    //蓝牙传数 山外
-      bluetooth[0]=(int)duoji_kp0;
-      bluetooth[1]=(int)duoji_kp1;
+      bluetooth[0]=(int)speed_l;
+      bluetooth[1]=(int)speed_r;
       bluetooth[2]=(int)error_k;
       bluetooth[3]=(int)error;
       bluetooth[4]=(int)setspeed;
-      bluetooth[5]=(int)duoji_kp;
-      bluetooth[6]=(int)duoji_kd;
-      bluetooth[7]=(int)ang_r;
+      bluetooth[5]=(int)setspeed_L;
+      bluetooth[6]=(int)setspeed_R;
+      bluetooth[7]=(int)chasu;
       vcan_sendware(bluetooth,sizeof(bluetooth));
 }
