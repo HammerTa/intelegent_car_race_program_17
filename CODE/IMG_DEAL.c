@@ -1028,8 +1028,8 @@ void T_Conner_Deal()
     {
         int row_min,row_max,row,col;
         int sum=0;
-        row_min=star_row-15;
-        row_max=star_row+15;
+        row_min=star_row-10;
+        row_max=star_row+8;
         for(col=5;col<COL-5;col+=5)
         {
             for(row=row_max;row>row_min;row--)
@@ -1044,7 +1044,7 @@ void T_Conner_Deal()
                 }
             }
         }
-        if(sum>20)
+        if(sum>25)
         {
             element_flag=IN_JUGED;
             T_flag=IN_T;
@@ -1207,8 +1207,14 @@ void Fork_Deal()
     ang=ang_r-ang_l;
     if(ang>150 && ang<180)
     {
-        element_flag=IN_JUGED;
-        Fork_Flag=IN_FORK;
+        float cross_r,cross_l;
+        cross_r=CrossRow_R(forck_R.Row[0]-2);
+        cross_l=CrossRow_L(forck_L.Row[0]-2);
+        if(cross_r>0.7 && cross_l>0.7)
+        {
+            element_flag=IN_JUGED;
+            Fork_Flag=IN_FORK;
+        }
     }
 }
 
@@ -1222,24 +1228,27 @@ void Garage_Deal()
 {
     if(Garage_flag==GET_OUT)
     {
-        if(CorssCol<0.7) Garage_flag=NO_GARAGE;
+        element_flag=IN_JUGED;
+        if(CorssCol>0.7)
+        {
+            Garage_flag=NO_GARAGE;
+            element_flag=NO_JUGED;
+        }
         return;
     }
     else if(Garage_flag==NO_GARAGE)
     {
-        int row,col,pin;
+        int row,col,pin,color;
         int col_min,col_max;
-        int sum,sum0,count;
+        int sum,sum0,count,T;
         for(row=120,pin=0;row>20;row-=5)
         {
             col_min=COL/2-TrackWild[row]/2;
             col_max=COL/2+TrackWild[row]/2;
+            color=IMG_DATA[row][col];
             for(col=col_min;col<col_max;col++)
             {
-                if(IMG_DATA[row][col]==WHITE_IMG)
-                {
 
-                }
             }
         }
     }
@@ -1481,6 +1490,25 @@ void Raceing_line_T_R()
     }
 }
 
+void Raceing_line_G_L()
+{
+    int i,pin;
+    if(left_flag==1)
+    {
+        RacingLine_L(10);
+    }
+    else
+    {
+        right_flag=1;
+        left_flag=1;
+        for(i=120,pin=0;i>60;i--)
+        {
+            middleline[pin]=0;
+            mid_row[pin]=i;
+            pin++;
+        }
+    }
+}
 
 void RaceLine()
 {
@@ -1497,6 +1525,7 @@ void RaceLine()
             Raceing_line_T_L();
         }
     }
+    else if(Garage_flag==GET_OUT) Raceing_line_G_L();
     else Racing_Line();
 }
 
@@ -1539,6 +1568,7 @@ void Img_Deal()
     Left_Apex();
     Right_Apex();
     //Angle_IMG();
+    Garage_Deal();
     Fork_Deal();
     T_Conner_Deal();
     RaceLine();

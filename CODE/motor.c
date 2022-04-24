@@ -244,8 +244,17 @@ void Gear_Box()
 //***************************************************************
 void motor_DiffSpeed()
 {
+    int angle_e;
   Gear_Box();
-  chasu=(chasu_k*fabs(1.0*(angle_pwm_out-S3010_Middle)))/(2+chasu_k*fabs(1.0*(angle_pwm_out-S3010_Middle)))*setspeed_used;//差速计算公式
+  angle_e=angle_pwm_out-S3010_Middle;
+  if(angle_e<0)
+  {
+      float angle_p;
+      angle_e=0-angle_e;
+      angle_p=1.0*angle_e/(S3010_Middle-S3010_Right);
+      angle_e=(int)(S3010_Left-S3010_Middle)*angle_p+1;
+  }//差速补偿
+  chasu=(chasu_k*fabs(1.0*angle_e))/(2+chasu_k*fabs(1.0*angle_e))*setspeed_used;//差速计算公式
   if(error==0)
   {
     setspeed_L=setspeed_used;

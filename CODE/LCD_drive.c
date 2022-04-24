@@ -117,12 +117,12 @@ void show()
             break;
         case 4:
             lcd_showstr(0,0,"LiveData");
-            lcd_showfloat(0,1,duoji_kp,2,4);
+            lcd_showfloat(0,1,(float)setspeed,2,4);
             lcd_showfloat(0,2,(float)error,2,4);
-            lcd_showfloat(0,3,error_k,2,5);
-            lcd_showfloat(0,4,duoji_kp0,2,5);
-            lcd_showfloat(0,5,duoji_kp1,2,5);
-            lcd_showfloat(0,6,temp_cheak,2,5);
+            lcd_showfloat(0,3,(float)speed_l,2,5);
+            lcd_showfloat(0,4,(float)speed_r,2,5);
+            lcd_showfloat(0,5,(float)setspeed_L,2,5);
+            lcd_showfloat(0,6,(float)setspeed_R,2,5);
             lcd_showint32(0,7,point_flag,5);
             break;
     }
@@ -351,8 +351,8 @@ void data_change(int key_input)
             Data_save();
             send_flag=1;
             systick_delay_ms(STM0,1000);
-            //changing();
-            changing_program();
+            changing();
+            //changing_program();
             key_value=0;
             break;
         case 10:
@@ -529,5 +529,5 @@ void key_control()
     key_scan_row();
     long_prass_1(key_value);
     data_change(key_value);
-    //show();
+    show();
 }

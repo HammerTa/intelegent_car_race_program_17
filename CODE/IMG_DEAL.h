@@ -19,6 +19,7 @@ typedef enum
 {
     NO_T,
     IN_T,
+    T_READY,
 }T_CONNER_enum;//TÕ‰
 
 typedef enum
