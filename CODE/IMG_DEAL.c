@@ -8,7 +8,8 @@ unsigned char stop=1;//停车标志位，置1表示停车
 unsigned char go=0;//直行标志位，1表示直行
 unsigned char deal_flag=0;//处理标志位
 unsigned char fork_flag=0;//三叉标志位
-unsigned char T_go_flag=0;//T弯补线标志位，0右1左
+unsigned char T_go_flag[2]={0};//T弯补线标志位，0右1左
+unsigned char T_go_flag_pin=0;//T弯补线标志位，0右1左
 unsigned char fork_turn=0;//1左，2右
 ALL_enum element_flag=NO_JUGED;
 FORK_enum Fork_Flag=NO_FORK;
@@ -130,13 +131,13 @@ int weight[120]={
 
 //--------------------------
 int TrackWild[120]={
-        20,21,22,24,25,26,28,29,30,32,33,34,35,37,38,39,41,42,43,
-        45,46,47,48,50,51,52,54,55,56,58,59,60,61,63,64,65,67,68,
-        69,71,72,73,74,76,77,78,80,81,82,84,85,86,87,89,90,91,93,
-        94,95,97,98,99,100,102,103,104,106,107,108,110,111,112,113,115,116,117,
-        119,120,121,123,124,125,126,128,129,130,132,133,134,136,137,138,139,141,142,
-        143,145,146,147,149,150,151,152,154,155,156,158,159,160,162,163,164,165,167,
-        168,169,171,172,173,175};
+        4,5,6,8,9,10,12,13,14,16,17,18,19,21,22,23,25,26,27,
+        29,30,31,33,34,35,37,38,39,41,42,43,45,46,47,48,50,51,52,
+        54,55,56,58,59,60,62,63,64,66,67,68,70,71,72,74,75,76,78,
+        79,80,81,83,84,85,87,88,89,91,92,93,95,96,97,99,100,101,103,
+        104,105,107,108,109,110,112,113,114,116,117,118,120,121,122,124,125,126,128,
+        129,130,132,133,134,136,137,138,139,141,142,143,145,146,147,149,150,151,153,
+        154,155,157,158,159,161};
 
 
 //***************************************************************
@@ -710,7 +711,6 @@ void Left_Apex()
     left_apex.Apex_Row=row_flag;
     left_apex.Apex_Col=col_flag;
 	L_S=S_jugde(left.Col,left.Row,left_apex.Mark);
-	K_left=1.0*(left_apex.Apex_Row-left.Row[0])/(left_apex.Apex_Col-left.Col[0]);
 }//寻找左弯心
 
 void Right_Apex()
@@ -739,7 +739,6 @@ void Right_Apex()
     right_apex.Apex_Row=row_flag;
     right_apex.Apex_Col=col_flag;
 	R_S=S_jugde(right.Col,right.Row,right_apex.Mark);
-	K_right=(right_apex.Apex_Row-right.Row[0])/(right_apex.Apex_Col-right.Col[0]);
 }//寻找右弯心
 
 //***************************************************************
@@ -1014,8 +1013,8 @@ void T_Conner_Deal()
         if(Col_cross>0.8)
         {
             T_flag=NO_T;
-            if(T_go_flag==1) T_go_flag=0;
-            else T_go_flag=1;
+            if(T_go_flag_pin==1) T_go_flag_pin=0;
+            else T_go_flag_pin=1;
             element_flag=NO_JUGED;
         }
         else
@@ -1245,10 +1244,13 @@ void Garage_Deal()
         {
             col_min=COL/2-TrackWild[row]/2;
             col_max=COL/2+TrackWild[row]/2;
-            color=IMG_DATA[row][col];
+            color=IMG_DATA[row][col_min];
             for(col=col_min;col<col_max;col++)
             {
+                if(color==WHITE_IMG)
+                {
 
+                }
             }
         }
     }
@@ -1516,14 +1518,10 @@ void RaceLine()
     else if(T_flag==IN_T)
     {
         gpio_set(FMQ,1);
-        if(T_go_flag==0)
-        {
+        if(T_go_flag[T_go_flag_pin]==0)
             Raceing_line_T_R();//往后需要添加额外判断，向左或者向右
-        }
-        else
-        {
+        else if(T_go_flag[T_go_flag_pin])
             Raceing_line_T_L();
-        }
     }
     else if(Garage_flag==GET_OUT) Raceing_line_G_L();
     else Racing_Line();
@@ -1574,6 +1572,6 @@ void Img_Deal()
     RaceLine();
 	//seekfree_sendimg_03x(UART_2,IMG_DATA,188,120);//传输处理后图像
 	//Track();
-  	//lcd_displayimage032_zoom((uint8)IMG_DATA,188,120,160,128);//图像显示
+//  	if(show_flag==1) lcd_displayimage032_zoom((uint8)IMG_DATA,188,120,160,128);//图像显示
 	deal_flag=0;
 }

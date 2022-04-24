@@ -424,7 +424,18 @@ void mt9v03x_dma(void)
 //-------------------------------------------------------------------------------------------------------------------
 void seekfree_sendimg_03x(UARTN_enum uartn, uint8 *image, uint16 width, uint16 height)
 {
-    uart_putchar(uartn,0x00);uart_putchar(uartn,0xff);uart_putchar(uartn,0x01);uart_putchar(uartn,0x01);//·¢ËÍÃüÁî
-    uart_putbuff(uartn, image, width*height);  //·¢ËÍÍ¼Ïñ
+    uint8 i,j;
+//  uart_putchar(uartn,0x00);uart_putchar(uartn,0xff);uart_putchar(uartn,0x01);uart_putchar(uartn,0x01);//·¢ËÍÃüÁî
+     for(i=0;i<height;i++)
+     {
+        for(j=0;j<width;j++)
+        {
+            if(image[i*MT9V03X_H+j]==0x01) image[i*MT9V03X_H+j]=0x02;
+//            else uart_putchar(uartn,image[i][j]);//·¢ËÍÃüÁî
+        }
+     }
+     uart_putchar(uartn,0x01);//·¢ËÍÃüÁî
+     uart_putbuff(uartn, image, width*height);  //·¢ËÍÍ¼Ïñ
+     uart_putchar(uartn,0x01);//·¢ËÍÃüÁî
 }
 

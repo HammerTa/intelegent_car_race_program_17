@@ -75,4 +75,5 @@ extern unsigned char deal_flag;
 extern unsigned char IMG_DATA[ROW][COL];
 extern unsigned char fork_flag;
 extern unsigned char fork_turn;
+extern unsigned char T_go_flag[2];
 #endif 

@@ -160,7 +160,7 @@ void angle_deal()
     {
       if(middleline[i]!=254)
       {
-        Mid_row=120-mid_row[i];
+        Mid_row=119-mid_row[i];
         error += weight[Mid_row]*(middleline[i] - COL/2);
         weight_sum += weight[i];//此处可以进行算法复杂度优化
       }

@@ -125,6 +125,14 @@ void show()
             lcd_showfloat(0,6,(float)setspeed_R,2,5);
             lcd_showint32(0,7,point_flag,5);
             break;
+        case 5:
+            lcd_showstr(0,0,"T_turning");
+            lcd_showint32(0,1,T_go_flag[0],2);
+            lcd_showint32(0,2,T_go_flag[1],2);
+            lcd_showint32(0,7,point_flag,5);
+            break;
+        case 6:
+            break;
     }
 }
 
@@ -220,7 +228,7 @@ void data_change(int key_input)
         case 1:
             lcd_clear(WHITE);
             title_flag++;
-            if(title_flag>=5)
+            if(title_flag>=6)
             {
                 title_flag=0;
             }
@@ -255,6 +263,9 @@ void data_change(int key_input)
                     break;
                 case 4:
                     break;
+                case 5:
+                    T_go_flag[point_flag-1]=0;
+                    break;
             }
             key_value=0;
             break;
@@ -278,6 +289,9 @@ void data_change(int key_input)
                     break;
                 case 4:
                     break;
+                case 5:
+                    T_go_flag[point_flag-1]=1;
+                    break;
             }
             key_value=0;
             break;
@@ -286,7 +300,7 @@ void data_change(int key_input)
             title_flag--;
             if(title_flag<0)
             {
-                title_flag=4;
+                title_flag=5;
             }
             key_value=0;
             point_flag=1;
@@ -319,6 +333,8 @@ void data_change(int key_input)
                     break;
                 case 4:
                     break;
+                case 5:
+                    break;
             }
             key_value=0;
             break;
@@ -342,7 +358,9 @@ void data_change(int key_input)
                     break;
                 case 4:
                     break;
-            }
+                case 5:
+                    break;
+           }
             key_value=0;
             break;
         case 9:
@@ -380,6 +398,8 @@ void data_change(int key_input)
                     break;
                 case 4:
                     break;
+                case 5:
+                    break;
             }
             key_value=0;
             break;
@@ -402,6 +422,8 @@ void data_change(int key_input)
                         speed_data[point_flag-1]+=0.1;
                     break;
                 case 4:
+                    break;
+                case 5:
                     break;
             }
             key_value=0;
