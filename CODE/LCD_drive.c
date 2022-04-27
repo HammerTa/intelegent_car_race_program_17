@@ -51,6 +51,7 @@ float gear_data[4];//={duoji_kp0,duoji_kd0,duoji_kp,duoji_kd};//舵机
 float L_motor_data[3];//={left_motor_kp,left_motor_ki,left_motor_kd};//左电机
 float R_motor_data[3];//={right_motor_kp,right_motor_ki,right_motor_kd};//右电机
 float speed_data[3];//={setspeed,chasu_k};//差速与速度设置
+float Gain_data[2];//左右误差增益
 //需要改变的数据
 
 int key_value=0;
@@ -132,6 +133,10 @@ void show()
             lcd_showint32(0,7,point_flag,5);
             break;
         case 6:
+            lcd_showstr(0,0,"Gain");
+            lcd_showfloat(0,1,Gain_data[0],2,2);
+            lcd_showfloat(0,2,Gain_data[1],2,2);
+            lcd_showint32(0,7,point_flag,5);
             break;
     }
 }
@@ -228,7 +233,7 @@ void data_change(int key_input)
         case 1:
             lcd_clear(WHITE);
             title_flag++;
-            if(title_flag>=6)
+            if(title_flag>=7)
             {
                 title_flag=0;
             }
@@ -266,6 +271,9 @@ void data_change(int key_input)
                 case 5:
                     T_go_flag[point_flag-1]=0;
                     break;
+                case 6:
+                    Gain_data[point_flag-1]-=0.01;
+                    break;
             }
             key_value=0;
             break;
@@ -292,6 +300,9 @@ void data_change(int key_input)
                 case 5:
                     T_go_flag[point_flag-1]=1;
                     break;
+                case 6:
+                    Gain_data[point_flag-1]+=0.01;
+                    break;
             }
             key_value=0;
             break;
@@ -300,7 +311,7 @@ void data_change(int key_input)
             title_flag--;
             if(title_flag<0)
             {
-                title_flag=5;
+                title_flag=6;
             }
             key_value=0;
             point_flag=1;
@@ -335,6 +346,8 @@ void data_change(int key_input)
                     break;
                 case 5:
                     break;
+                case 6:
+                    break;
             }
             key_value=0;
             break;
@@ -360,6 +373,8 @@ void data_change(int key_input)
                     break;
                 case 5:
                     break;
+                case 6:
+                    break;
            }
             key_value=0;
             break;
@@ -370,7 +385,7 @@ void data_change(int key_input)
             send_flag=1;
             systick_delay_ms(STM0,1000);
             changing();
-            //changing_program();
+//            changing_program();
             key_value=0;
             break;
         case 10:
@@ -400,6 +415,8 @@ void data_change(int key_input)
                     break;
                 case 5:
                     break;
+                case 6:
+                    break;
             }
             key_value=0;
             break;
@@ -425,6 +442,8 @@ void data_change(int key_input)
                     break;
                 case 5:
                     break;
+                case 6:
+                    break;
             }
             key_value=0;
             break;
@@ -443,6 +462,8 @@ void changing()
     right_motor_kp=R_motor_data[0];
     right_motor_ki=R_motor_data[1];
     right_motor_kd=R_motor_data[2];
+    Gain_L=Gain_data[0];
+    Gain_R=Gain_data[1];
     setspeed=(int)speed_data[0];
     min_speed=speed_data[1];
     chasu_k=speed_data[2];
@@ -475,6 +496,8 @@ void Data_save()
     Save[10]=(uint32)(speed_data[0]*10);
     Save[11]=(uint32)(speed_data[1]*10);
     Save[12]=(uint32)(speed_data[2]*100);
+    Save[13]=(uint32)(Gain_data[0]*100);
+    Save[14]=(uint32)(Gain_data[1]*100);
     for(int i=0;i<100;i++)
     {
         eeprom_page_program(0,i,&Save[i]);
@@ -500,6 +523,8 @@ void Read_data()
     speed_data[0]=0.1*(float)Save[10];
     speed_data[1]=0.1*(float)Save[11];
     speed_data[2]=0.01*(float)Save[12];
+    Gain_data[0]=0.01*(float)Save[13];
+    Gain_data[1]=0.01*(float)Save[14];
 }
 
 void long_prass_1(int key_press)
@@ -520,18 +545,20 @@ void show_key()
 void changing_program()//代码调参
 {
     duoji_kp0=1.2;
-    duoji_kd0=1.9;
-    duoji_kp1=20;
+    duoji_kd0=3;
+    duoji_kp1=6;
     duoji_kd1=0;
     left_motor_kp=200;
-    left_motor_ki=90;
+    left_motor_ki=100;
     left_motor_kd=80;
     right_motor_kp=200;
-    right_motor_ki=90;
+    right_motor_ki=100;
     right_motor_kd=80;
     setspeed=60;
     min_speed=40;
-    chasu_k=0.0;
+    chasu_k=0.01;
+    Gain_R=0.4;
+    Gain_L=0.0;
     pwm0_flag=0;
     stop=0;
     speed_error_L0=0;

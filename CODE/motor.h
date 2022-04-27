@@ -21,6 +21,7 @@ extern float P_rate,D_rate;
 extern float left_motor_kp,left_motor_ki,left_motor_kd;    //电机pid用于稳定控制轮子转速
 extern float right_motor_kp,right_motor_ki,right_motor_kd;
 extern float error_k,temp_cheak;
+extern float Gain_L,Gain_R;//增益
 extern int setspeed;     //别给太大，一开始可以给20
 extern int min_speed;
 extern int left_pwm_out;

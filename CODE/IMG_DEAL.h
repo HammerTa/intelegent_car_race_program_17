@@ -25,6 +25,7 @@ typedef enum
 typedef enum
 {
     GET_OUT,
+    FIRST,
     READY,
     GET_IN,
     NO_GARAGE,

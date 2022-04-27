@@ -1235,24 +1235,42 @@ void Garage_Deal()
         }
         return;
     }
-    else if(Garage_flag==NO_GARAGE)
+    else if(Garage_flag!=GET_OUT)
     {
-        int row,col,pin,color;
+        if(element_flag==IN_JUGED) return;
+        int row,col;
         int col_min,col_max;
-        int sum,sum0,count,T;
-        for(row=120,pin=0;row>20;row-=5)
+        int T,T0,count,BM_count;
+        T=0,T0=0;
+        count=0;
+        BM_count=0;
+        for(row=110;row>50;row-=5)
         {
             col_min=COL/2-TrackWild[row]/2;
             col_max=COL/2+TrackWild[row]/2;
-            color=IMG_DATA[row][col_min];
             for(col=col_min;col<col_max;col++)
             {
-                if(color==WHITE_IMG)
+                if(IMG_DATA[row][col]==BLACK_IMG && IMG_DATA[row][col+1]==BLACK_IMG && IMG_DATA[row][col+2]==WHITE_IMG && IMG_DATA[row][col+3]==WHITE_IMG)
                 {
-
+                    if(T-T0>-5 && T-T0<5) count++;
+                    T0=T;
+                    T=0;
+                }
+                else
+                {
+                    T++;
+                }
+                if(count>=5)
+                {
+                    count=0;
+                    BM_count++;
+                    break;
                 }
             }
         }
+        if(BM_count>=2 && Garage_flag==NO_GARAGE)  Garage_flag=FIRST;
+        else if(BM_count==0 && Garage_flag==FIRST) Garage_flag=READY;
+        else if(BM_count>=2 && Garage_flag==READY) Garage_flag=GET_IN;
     }
 }
 
@@ -1495,11 +1513,8 @@ void Raceing_line_T_R()
 void Raceing_line_G_L()
 {
     int i,pin;
-    if(left_flag==1)
-    {
-        RacingLine_L(10);
-    }
-    else
+    if(Garage_flag==GET_IN)chasu_k=1;
+    if(left_flag==0 || Garage_flag==GET_IN)
     {
         right_flag=1;
         left_flag=1;
@@ -1509,6 +1524,31 @@ void Raceing_line_G_L()
             mid_row[pin]=i;
             pin++;
         }
+    }
+    else if(left_flag==1)
+    {
+        RacingLine_L(10);
+    }
+}
+
+void Raceing_line_G_R()
+{
+    int i,pin;
+    if(Garage_flag==GET_IN)chasu_k=1;
+    if(right_flag==0 || Garage_flag==GET_IN)
+    {
+        right_flag=1;
+        left_flag=1;
+        for(i=120,pin=0;i>60;i--)
+        {
+            middleline[pin]=188;
+            mid_row[pin]=i;
+            pin++;
+        }
+    }
+    else if(right_flag==1)
+    {
+        RacingLine_R(10);
     }
 }
 
@@ -1524,6 +1564,7 @@ void RaceLine()
             Raceing_line_T_L();
     }
     else if(Garage_flag==GET_OUT) Raceing_line_G_L();
+    else if(Garage_flag==GET_IN) Raceing_line_G_R();
     else Racing_Line();
 }
 

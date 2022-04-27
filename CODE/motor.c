@@ -53,6 +53,7 @@ int setspeed_used;
 int time=0,timestop=0;
 int Mid_row;
 int min_speed;
+float Gain_L,Gain_R;
 ///***************************************************************
 //* 函数名称： steering_inti
 //* 功能说明： 舵机初始化
@@ -169,6 +170,8 @@ void angle_deal()
   }
   else
     error = error0;
+  if(error>0) error=(int)error*(Gain_R+1);
+  else error=(int)error*(Gain_L+1);
   if(error<-e_lim)
   {
       error=-e_lim;

@@ -46,9 +46,9 @@
 //-----舵机
 #define steering_gear     ATOM1_CH1_P33_9
 #define steering_frequency 50
-#define S3010_Middle   588  //舵机中值
-#define S3010_Left     673  //左打死
-#define S3010_Right    520 //右打死
+#define S3010_Middle   585  //舵机中值
+#define S3010_Left     671  //左打死
+#define S3010_Right    515 //右打死
 //-----编码器
 #define encoder_GPT_l     GPT12_T4
 #define encoder_EUD_l     GPT12_T4EUDA_P00_9  //DIR
