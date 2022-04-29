@@ -170,8 +170,8 @@ void angle_deal()
   }
   else
     error = error0;
-  if(error>0) error=(int)error*(Gain_R+1);
-  else error=(int)error*(Gain_L+1);
+  if(error>0) error=(int)error*(Gain_R+1.0);
+  else error=(int)error*(Gain_L+1.0);
   if(error<-e_lim)
   {
       error=-e_lim;

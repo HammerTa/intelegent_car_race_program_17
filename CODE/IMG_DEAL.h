@@ -33,6 +33,8 @@ typedef enum
 
 typedef enum
 {
+    ROUND_L,
+    ROUND_R,
     GET_IN_ROUND,
     GET_OUT_ROUND,
     NO_ROUND,

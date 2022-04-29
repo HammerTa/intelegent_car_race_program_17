@@ -16,6 +16,7 @@ FORK_enum Fork_Flag=NO_FORK;
 T_CONNER_enum T_flag=NO_T;
 Garage_enmum Garage_flag=GET_OUT;
 Roundabout_enmum Roundabout_flag=NO_ROUND;
+Roundabout_enmum Roundabout_flag_position=ROUND_L;
 //int i = 0,j = 0;
 
 //********************************************
@@ -1010,7 +1011,7 @@ void T_Conner_Deal()
     }
     if(T_flag==IN_T)
     {
-        if(Col_cross>0.8)
+        if(Col_cross>0.7)
         {
             T_flag=NO_T;
             if(T_go_flag_pin==1) T_go_flag_pin=0;
@@ -1023,7 +1024,7 @@ void T_Conner_Deal()
             return;
         }
     }
-    if(L_cross>0.7 && R_cross>0.7 && Col_cross<0.8 && T_flag==NO_T)
+    if(L_cross>0.7 && R_cross>0.7 && Col_cross<0.7 && T_flag==NO_T)
     {
         int row_min,row_max,row,col;
         int sum=0;
@@ -1100,7 +1101,7 @@ void Fork_Deal()
         }
     }
     if(B_Top!=1) return;
-    for (i=50;i>35;i--)
+    for (i=50;i>30;i--)
     {
         int min=COL/2-20,max=COL/2+20;
         for(j=min;j<max;j++)
@@ -1244,7 +1245,7 @@ void Garage_Deal()
         T=0,T0=0;
         count=0;
         BM_count=0;
-        for(row=110;row>50;row-=5)
+        for(row=110;row>40;row-=5)
         {
             col_min=COL/2-TrackWild[row]/2;
             col_max=COL/2+TrackWild[row]/2;
@@ -1268,9 +1269,12 @@ void Garage_Deal()
                 }
             }
         }
-        if(BM_count>=2 && Garage_flag==NO_GARAGE)  Garage_flag=FIRST;
-        else if(BM_count==0 && Garage_flag==FIRST) Garage_flag=READY;
-        else if(BM_count>=2 && Garage_flag==READY) Garage_flag=GET_IN;
+        if(BM_count>=2 && Garage_flag==NO_GARAGE)
+            Garage_flag=FIRST;
+        else if(BM_count==0 && Garage_flag==FIRST)
+            Garage_flag=READY;
+        else if(BM_count>=1 && Garage_flag==READY)
+            Garage_flag=GET_IN;
     }
 }
 
@@ -1564,7 +1568,7 @@ void RaceLine()
             Raceing_line_T_L();
     }
     else if(Garage_flag==GET_OUT) Raceing_line_G_L();
-    else if(Garage_flag==GET_IN) Raceing_line_G_R();
+    else if(Garage_flag==GET_IN) Raceing_line_G_L();
     else Racing_Line();
 }
 
@@ -1592,7 +1596,11 @@ void RaceLine()
 //***************************************************************
 void Img_Deal()
 { 
-    if(stop==1)  return;
+    if(stop==1)
+    {
+        Garage_flag=GET_OUT;
+        return;
+    }
     Deal_Init();
     InitData();
     deal_flag=1;
