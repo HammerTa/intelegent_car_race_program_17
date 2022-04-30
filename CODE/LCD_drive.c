@@ -576,7 +576,7 @@ void key_control()
 {
     //key_scan();
     key_scan_row();
-    long_prass_1(key_value);
+//    long_prass_1(key_value);
     data_change(key_value);
     show();
 }

@@ -147,39 +147,38 @@ void PDChange(int er)
 //***************************************************************
 void angle_deal()
 {
-  int i;//,j;
-  int weight_sum=0;
-  //================================
-  //=====计算打角偏差===============
-  error0 = error;
-  if(middleline[0]!=254)
-  {
-    error = 0;
-    weight_sum = 0;
-
-    for(i = 119;i >= 0;i--)
+    int i;//,j;
+    int weight_sum=0;
+    //================================
+    //=====计算打角偏差===============
+    error0 = error;
+    if(middleline[0]!=254)
     {
-      if(middleline[i]!=254)
-      {
-        Mid_row=119-mid_row[i];
-        error += weight[Mid_row]*(middleline[i] - COL/2);
-        weight_sum += weight[i];//此处可以进行算法复杂度优化
-      }
+        error = 0;
+        weight_sum = 0;
+        for(i = 119;i >= 0;i--)
+        {
+            if(middleline[i]!=254)
+            {
+                Mid_row=119-mid_row[i];
+                error += weight[Mid_row]*(middleline[i] - COL/2);
+                weight_sum += weight[i];//此处可以进行算法复杂度优化
+            }
+        }
+        error /= weight_sum;
     }
-    error /= weight_sum;
-  }
-  else
-    error = error0;
-  if(error>0) error=(int)error*(Gain_R+1.0);
-  else error=(int)error*(Gain_L+1.0);
-  if(error<-e_lim)
-  {
-      error=-e_lim;
-  }
-  if(error>e_lim)
-  {
-      error=e_lim;
-  }
+    else
+        error = error0;
+    if(error>0) error=(int)error*(Gain_R+1.0);
+    else error=(int)error*(Gain_L+1.0);
+    if(error<-e_lim)
+    {
+        error=-e_lim;
+    }
+    if(error>e_lim)
+    {
+        error=e_lim;
+    }
   //================================
 //  ERROR[COUNT]=(int)(error*0.2);
 //  COUNT++;
@@ -193,19 +192,19 @@ void angle_deal()
 //    COUNT=0;
 //  }//滤波
   //======打角pd控制================
-  PDChange(error);
-  angle=(int)(duoji_kp*error+duoji_kd*(error-error0));
-  angle_pwm_out= S3010_Middle-angle;
-  if(stop==1) angle_pwm_out=S3010_Middle;
-  if(angle_pwm_out<S3010_Right)
-  {
-    angle_pwm_out=S3010_Right;
-  }
-  if(angle_pwm_out>S3010_Left)
-  {
-    angle_pwm_out=S3010_Left;
-  }
-  pwm_duty(steering_gear,angle_pwm_out);
+    PDChange(error);
+    angle=(int)(duoji_kp*error+duoji_kd*(error-error0));
+    angle_pwm_out= S3010_Middle-angle;
+    if(stop==1) angle_pwm_out=S3010_Middle;
+    if(angle_pwm_out<S3010_Right)
+    {
+        angle_pwm_out=S3010_Right;
+    }
+    if(angle_pwm_out>S3010_Left)
+    {
+        angle_pwm_out=S3010_Left;
+    }
+    pwm_duty(steering_gear,angle_pwm_out);
 }
 
 ///***************************************************************
@@ -248,44 +247,44 @@ void Gear_Box()
 void motor_DiffSpeed()
 {
     int angle_e;
-  Gear_Box();
-  angle_e=angle_pwm_out-S3010_Middle;
-  if(angle_e<0)
-  {
-      float angle_p;
-      angle_e=0-angle_e;
-      angle_p=1.0*angle_e/(S3010_Middle-S3010_Right);
-      angle_e=(int)(S3010_Left-S3010_Middle)*angle_p+1;
-  }//差速补偿
-  chasu=(chasu_k*fabs(1.0*angle_e))/(2+chasu_k*fabs(1.0*angle_e))*setspeed_used;//差速计算公式
-  if(error==0)
-  {
-    setspeed_L=setspeed_used;
-    setspeed_R=setspeed_used;
-  }
-  else if(error<0)
-  {
-    if(chasu>CS_lim*setspeed_used)//差速限幅，不一定是0.9
+    Gear_Box();
+    angle_e=angle_pwm_out-S3010_Middle;
+    if(angle_e<0)
     {
-     chasu=CS_lim*setspeed_used;
-    }
-    setspeed_L=(int)(setspeed_used-chasu*0.75);
-    setspeed_R=(int)(setspeed_used+chasu*0.25);
-  }
-  else
-  {
-    if(chasu>CS_lim*setspeed_used)
+        float angle_p;
+        angle_e=0-angle_e;
+        angle_p=1.0*angle_e/(S3010_Middle-S3010_Right);
+        angle_e=(int)(S3010_Left-S3010_Middle)*angle_p+1;
+    }//差速补偿
+    chasu=(chasu_k*fabs(1.0*angle_e))/(2+chasu_k*fabs(1.0*angle_e))*setspeed_used;//差速计算公式
+    if(error==0)
     {
-     chasu=CS_lim*setspeed_used;
+        setspeed_L=setspeed_used;
+        setspeed_R=setspeed_used;
     }
-    setspeed_L=(int)(setspeed_used+chasu*0.25);
-    setspeed_R=(int)(setspeed_used-chasu*0.75);
-  }
-  if(stop==1)
-  {
-      setspeed_L=0;
-      setspeed_R=0;
-  }
+    else if(error<0)
+    {
+        if(chasu>CS_lim*setspeed_used)//差速限幅，不一定是0.9
+        {
+            chasu=CS_lim*setspeed_used;
+        }
+        setspeed_L=(int)(setspeed_used-chasu);
+        setspeed_R=(int)(setspeed_used);
+    }
+    else
+    {
+        if(chasu>CS_lim*setspeed_used)
+        {
+            chasu=CS_lim*setspeed_used;
+        }
+        setspeed_L=(int)(setspeed_used);
+        setspeed_R=(int)(setspeed_used-chasu);
+    }
+    if(stop==1)
+    {
+        setspeed_L=0;
+        setspeed_R=0;
+    }
 }
 
 ///**************************************************************
@@ -297,12 +296,12 @@ void motor_DiffSpeed()
 int uil=0,uir=0;
 void motor_pid()
 {
-  //左电机计算
-  speed_error_L0=setspeed_L-speed_l;
-  left_pwm=(int)((speed_error_L0-speed_error_L1)*left_motor_kp+speed_error_L0*left_motor_ki+(speed_error_L0-2*speed_error_L1+speed_error_L2)*left_motor_kd);
-  left_pwm_out+=left_pwm;
-  speed_error_L2=speed_error_L1;
-  speed_error_L1=speed_error_L0;
+    //左电机计算
+    speed_error_L0=setspeed_L-speed_l;
+    left_pwm=(int)((speed_error_L0-speed_error_L1)*left_motor_kp+speed_error_L0*left_motor_ki+(speed_error_L0-2*speed_error_L1+speed_error_L2)*left_motor_kd);
+    left_pwm_out+=left_pwm;
+    speed_error_L2=speed_error_L1;
+    speed_error_L1=speed_error_L0;
 //***************************************************************
 //  speed_error_L0=setspeed_L-speed_l;
 //  uil+=1.0*speed_error_L0*left_motor_ki/100;
@@ -312,11 +311,11 @@ void motor_pid()
 //  speed_error_L1=speed_error_L0;
 
   //右电机计算
-  speed_error_R0=setspeed_R-speed_r;
-  right_pwm=(int)((speed_error_R0-speed_error_R1)*right_motor_kp+speed_error_R0*right_motor_ki+(speed_error_R0-2*speed_error_R1+speed_error_R2)*right_motor_kd);
-  right_pwm_out+=right_pwm;
-  speed_error_R2=speed_error_R1;
-  speed_error_R1=speed_error_R0;
+    speed_error_R0=setspeed_R-speed_r;
+    right_pwm=(int)((speed_error_R0-speed_error_R1)*right_motor_kp+speed_error_R0*right_motor_ki+(speed_error_R0-2*speed_error_R1+speed_error_R2)*right_motor_kd);
+    right_pwm_out+=right_pwm;
+    speed_error_R2=speed_error_R1;
+    speed_error_R1=speed_error_R0;
 
   //位置式
 //  speed_error_R0=setspeed_R-speed_r;
@@ -327,22 +326,22 @@ void motor_pid()
 //  speed_error_R1=speed_error_R0;
 
 //-----pwm限幅----
-  if(left_pwm_out>lim_pwm)
-  {
-    left_pwm_out=lim_pwm;
-  }
-  else if(left_pwm_out<-lim_pwm)
-  {
-    left_pwm_out=-lim_pwm;
-  }
-   if(right_pwm_out>lim_pwm)
-  {
-    right_pwm_out=lim_pwm;
-  }
-  else if(right_pwm_out<-lim_pwm)
-  {
-    right_pwm_out=-lim_pwm;
-  }
+    if(left_pwm_out>lim_pwm)
+    {
+        left_pwm_out=lim_pwm;
+    }
+    else if(left_pwm_out<-lim_pwm)
+    {
+        left_pwm_out=-lim_pwm;
+    }
+    if(right_pwm_out>lim_pwm)
+    {
+        right_pwm_out=lim_pwm;
+    }
+    else if(right_pwm_out<-lim_pwm)
+    {
+        right_pwm_out=-lim_pwm;
+    }
 }
 
 ///***************************************************************
