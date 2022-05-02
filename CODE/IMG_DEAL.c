@@ -909,10 +909,13 @@ void protect()
 {
   unsigned char i;
   unsigned char sum;
+  int row;
+  if(Garage_flag==GET_IN) row=70;
+  else row=115;
   sum=0;
   for(i=0;i<188;i++)
   {
-    if(IMG_DATA[115][i]==BLACK_IMG)
+    if(IMG_DATA[row][i]==BLACK_IMG)
       sum++;
   }
   SUM=sum;

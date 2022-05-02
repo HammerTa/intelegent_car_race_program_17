@@ -100,7 +100,6 @@ void Count_init()
 void Control()
 {
     Speed_Get();
-
     motor_DiffSpeed();
     motor_pid();
     if(stop==1)
@@ -129,11 +128,9 @@ void Control()
 //* 函数返回： 无
 //* 备 注：
 //***************************************************************
-float temp_cheak;
 void PDChange(int er)
 {
     if(er<0) er= 0 - er;
-    temp_cheak=duoji_kp1-duoji_kp0;
     error_k=(duoji_kp1-duoji_kp0)/100;
     duoji_kp=error_k*er+duoji_kp0;
     duoji_kd=duoji_kd0;
@@ -233,7 +230,7 @@ void Speed_Get()
 //***************************************************************
 void Gear_Box()
 {
-    CorssCol=1;//注释此行可进行速度控制
+//    CorssCol=1;//注释此行可进行速度控制
     setspeed_used=(int)(setspeed*CorssCol);
     if(setspeed_used<min_speed) setspeed_used=min_speed;
 }
@@ -249,7 +246,7 @@ void motor_DiffSpeed()
     int angle_e;
     Gear_Box();
     angle_e=angle_pwm_out-S3010_Middle;
-    if(angle_e<0)
+    if(angle_e>0)
     {
         float angle_p;
         angle_e=0-angle_e;
