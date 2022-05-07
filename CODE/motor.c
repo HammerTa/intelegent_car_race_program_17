@@ -117,7 +117,7 @@ void Control()
     {
         timestop++;
         time=0;
-        if(timestop>=36000) stop=1;
+        //if(timestop>=400) stop=1;
     }
     pwm_out();
 }
@@ -230,7 +230,7 @@ void Speed_Get()
 //***************************************************************
 void Gear_Box()
 {
-//    CorssCol=1;//注释此行可进行速度控制
+    CorssCol=1;//注释此行可进行速度控制
     setspeed_used=(int)(setspeed*CorssCol);
     if(setspeed_used<min_speed) setspeed_used=min_speed;
 }
@@ -245,15 +245,14 @@ void motor_DiffSpeed()
 {
     int angle_e;
     Gear_Box();
-    angle_e=angle_pwm_out-S3010_Middle;
-    if(angle_e>0)
+    if(angle<0)//这里换成大于可以让车模运行更稳定，我也不知道为什么，很诡异
     {
         float angle_p;
-        angle_e=0-angle_e;
-        angle_p=1.0*angle_e/(S3010_Middle-S3010_Right);
-        angle_e=(int)(S3010_Left-S3010_Middle)*angle_p+1;
+        angle_e=0-angle;
+        angle_p=1.0*angle_e/(S3010_Left-S3010_Middle);
+        angle_e=(int)(S3010_Middle-S3010_Right)*angle_p;
     }//差速补偿
-    chasu=(chasu_k*fabs(1.0*angle_e))/(2+chasu_k*fabs(1.0*angle_e))*setspeed_used;//差速计算公式
+    chasu=(chasu_k*angle_e)/(2+chasu_k*angle_e)*setspeed_used;//差速计算公式
     if(error==0)
     {
         setspeed_L=setspeed_used;

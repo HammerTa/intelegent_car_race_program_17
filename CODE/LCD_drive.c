@@ -61,7 +61,7 @@ uint8 show_img=0;
 int title_flag=4;
 int point_flag=1;
 int key_time=0;//按键时间
-uint32 Save[100];
+int Save[100];
 
 
 
@@ -130,6 +130,7 @@ void show()
             lcd_showstr(0,0,"T_turning");
             lcd_showint32(0,1,T_go_flag[0],2);
             lcd_showint32(0,2,T_go_flag[1],2);
+            lcd_showint32(0,3,(int)fork_turn,2);
             lcd_showint32(0,7,point_flag,5);
             break;
         case 6:
@@ -269,7 +270,8 @@ void data_change(int key_input)
                 case 4:
                     break;
                 case 5:
-                    T_go_flag[point_flag-1]=0;
+                    if(point_flag<=2) T_go_flag[point_flag-1]=0;
+                    else if(point_flag==3) fork_turn=1;
                     break;
                 case 6:
                     Gain_data[point_flag-1]-=0.01;
@@ -298,7 +300,8 @@ void data_change(int key_input)
                 case 4:
                     break;
                 case 5:
-                    T_go_flag[point_flag-1]=1;
+                    if(point_flag<=2) T_go_flag[point_flag-1]=1;
+                    else if(point_flag==3) fork_turn=2;
                     break;
                 case 6:
                     Gain_data[point_flag-1]+=0.01;
@@ -483,21 +486,21 @@ void changing()
 
 void Data_save()
 {
-    Save[0]=(uint32)(gear_data[0]*10);
-    Save[1]=(uint32)(gear_data[1]*10);
-    Save[2]=(uint32)(gear_data[2]*10);
-    Save[3]=(uint32)(gear_data[3]*10);
-    Save[4]=(uint32)(L_motor_data[0]*10);
-    Save[5]=(uint32)(L_motor_data[1]*10);
-    Save[6]=(uint32)(L_motor_data[2]*10);
-    Save[7]=(uint32)(R_motor_data[0]*10);
-    Save[8]=(uint32)(R_motor_data[1]*10);
-    Save[9]=(uint32)(R_motor_data[2]*10);
-    Save[10]=(uint32)(speed_data[0]*10);
-    Save[11]=(uint32)(speed_data[1]*10);
-    Save[12]=(uint32)(speed_data[2]*100);
-    Save[13]=(uint32)(Gain_data[0]*100);
-    Save[14]=(uint32)(Gain_data[1]*100);
+    Save[0]=(int)(gear_data[0]*10);
+    Save[1]=(int)(gear_data[1]*10);
+    Save[2]=(int)(gear_data[2]*10);
+    Save[3]=(int)(gear_data[3]*10);
+    Save[4]=(int)(L_motor_data[0]*10);
+    Save[5]=(int)(L_motor_data[1]*10);
+    Save[6]=(int)(L_motor_data[2]*10);
+    Save[7]=(int)(R_motor_data[0]*10);
+    Save[8]=(int)(R_motor_data[1]*10);
+    Save[9]=(int)(R_motor_data[2]*10);
+    Save[10]=(int)(speed_data[0]*10);
+    Save[11]=(int)(speed_data[1]*10);
+    Save[12]=(int)(speed_data[2]*100);
+    Save[13]=(int)(Gain_data[0]*100);
+    Save[14]=(int)(Gain_data[1]*100);
     for(int i=0;i<100;i++)
     {
         eeprom_page_program(0,i,&Save[i]);
@@ -508,7 +511,7 @@ void Read_data()
 {
     for(int i=0;i<100;i++)
     {
-        Save[i]=flash_read(0,i,uint32);
+        Save[i]=flash_read(0,i,int);
     }
     gear_data[0]=0.1*(float)Save[0];
     gear_data[1]=0.1*(float)Save[1];

@@ -10,13 +10,13 @@ unsigned char deal_flag=0;//处理标志位
 unsigned char fork_flag=0;//三叉标志位
 unsigned char T_go_flag[2]={0};//T弯补线标志位，0右1左
 unsigned char T_go_flag_pin=0;//T弯补线标志位，0右1左
-unsigned char fork_turn=0;//1左，2右
+unsigned char fork_turn=1;//1左，2右
 ALL_enum element_flag=NO_JUGED;
 FORK_enum Fork_Flag=NO_FORK;
 T_CONNER_enum T_flag=NO_T;
 Garage_enmum Garage_flag=GET_OUT;
 Roundabout_enmum Roundabout_flag=NO_ROUND;
-Roundabout_enmum Roundabout_flag_position=ROUND_L;
+Roundabout_position_enmum Roundabout_flag_position=NOROUND;
 //int i = 0,j = 0;
 
 //********************************************
@@ -224,7 +224,6 @@ void Deal_Init()
     Vector_l.star[1]=254;
     Vector_l.end[0]=254;
     Vector_l.end[1]=254;
-    fork_turn=0;
     L_lenth=0;
     R_lenth=0;
     fork_flag=0;
@@ -524,7 +523,7 @@ void left_jump()
 	{
 		find = 0;
 		row = left.Row[0] - pin;
-		if(row<10)break;
+		if(row<=15)break;
 		colmin = left.Col[pin - 1] - 10;
 		colmax = left.Col[pin - 1] + 10;
 		for(col = colmin;col <= colmax;col++)
@@ -580,7 +579,7 @@ void right_jump()
 	{
 		find = 0;
 		row = right.Row[0] - pin;
-		if(row<10)break;
+		if(row<=15)break;
 		colmin = right.Col[pin - 1] - 10;
 		colmax = right.Col[pin - 1] + 10;
 		for(col = colmax;col >= colmin;col--)
@@ -736,6 +735,7 @@ void Right_Apex()
             col_flag=right.Col[pin];
             right_apex.Mark=pin;
         }
+        //if(right.Row[pin]<row_min) break;
     }
     right_apex.Apex_Row=row_flag;
     right_apex.Apex_Col=col_flag;
@@ -989,7 +989,82 @@ void Conner_cheack()
 //***************************************************************
 void Roundabout_Deal()
 {
+    float cross_row_L,cross_row_R;
+    float cross_col;
+    cross_col=Cross_col();
+    if(element_flag==IN_JUGED && Roundabout_flag==NO_ROUND) return;
+    if(cross_col<0.75 && Roundabout_flag!=GET_IN_ROUND)
+    {
+        Roundabout_flag=NO_ROUND;
+        element_flag=NO_JUGED;
+        return;
+    }
+    cross_row_L=CrossRow_L(75);
+    cross_row_R=CrossRow_R(75);
+//    lcd_showfloat(0,0,cross_row_L,2,2);
+//    lcd_showfloat(0,1,cross_row_R,2,2);
+//    lcd_showint32(0,2,Roundabout_flag,5);
+    switch(Roundabout_flag)
+    {
+        case NO_ROUND:
+            if(cross_row_L>0.9 && cross_row_R<0.9)
+            {
+                Roundabout_flag_position=ROUND_L;
+                Roundabout_flag=ROUND_READY;
+                element_flag=IN_JUGED;
+            }
+            else if(cross_row_L<0.9 && cross_row_R>0.9)
+            {
+                Roundabout_flag_position=ROUND_R;
+                Roundabout_flag=ROUND_READY;
+                element_flag=IN_JUGED;
+            }
+            else if(cross_row_L>0.9 && cross_row_R>0.9)
+            {
+                Roundabout_flag_position=NOROUND;
+                Roundabout_flag=NO_ROUND;
+                element_flag=NO_JUGED;
+            }
+            break;
+        case ROUND_READY:
+            switch (Roundabout_flag_position)
+            {
+                case ROUND_L:
+                    if(cross_row_L<0.85) Roundabout_flag=GET_IN_READY;
+                    element_flag=IN_JUGED;
+                    break;
+                case ROUND_R:
 
+                    break;
+                case NOROUND:
+                    break;
+            }
+            break;
+        case GET_IN_READY:
+            switch (Roundabout_flag_position)
+            {
+                case ROUND_L:
+                    if(cross_row_L>0.85) Roundabout_flag=GET_IN_ROUND;
+                    element_flag=IN_JUGED;
+                    break;
+                case ROUND_R:
+
+                    break;
+                case NOROUND:
+                    break;
+            }
+            break;
+        case GET_IN_ROUND:
+            break;
+        case GET_OUT_ROUND:
+            break;
+    }
+//    else
+//    {
+//        Roundabout_flag_position=NO_ROUND;
+//        Roundabout_flag=NO_ROUND;
+//        element_flag=NO_JUGED;
+//    }
 }
 
 
@@ -1457,6 +1532,57 @@ void Racing_Line_Fork_L()
     return;
 }
 
+//***************************************************************
+//* 函数名称： Racing_Line_Fork_R
+//* 功能说明： 三叉巡线策略，补左寻右
+//* 函数返回：
+//* 备 注：
+//***************************************************************
+void Racing_Line_Fork_R()
+{
+//    gpio_set(FMQ,1);
+//    if(left.Col[0]>right.Col[0]) RacingLine_R(2);
+//    else RacingLine_L(5);
+//    return;
+    int pin,i;
+    int row,col;
+    int flag;
+    int l_flag,r_flag;
+    l_flag=0;
+    r_flag=0;
+    i=0;
+    row=forck_R.Row[0];
+    gpio_set(FMQ,1);
+    for(pin=0;pin<240;pin++)
+    {
+        flag=119-pin;
+        if(flag>forck_L.Row[0])
+        {
+            middleline[pin]=forck_R.Col[0]+TrackWild[row]/2;
+            col=middleline[pin];
+            mid_row[pin]=flag;
+            IMG_DATA[flag][col]=GREEN_IMG;
+        }
+        else
+        {
+              row=forck_R.Row[i];
+              col=forck_R.Col[i]+TrackWild[row]/2;
+              middleline[pin]=col;
+              mid_row[pin]=row;
+              i++;
+              if(row>5&&row<ROW-5)
+              {
+                    if(col>5&&col<COL-5)
+                    {
+                        IMG_DATA[row][col]=GREEN_IMG;
+                    }
+              }
+        }
+        if(forck_L.Row[pin+1]==254) break;
+     }
+    return;
+}
+
 //**************************************************************
 //* 函数名称： Raceing_line_T_L
 //* 功能说明： T补线，向左
@@ -1561,7 +1687,13 @@ void Raceing_line_G_R()
 
 void RaceLine()
 {
-    if(Fork_Flag==IN_FORK) Racing_Line_Fork_L();
+    if(Fork_Flag==IN_FORK)
+    {
+        if(fork_turn==1)
+            Racing_Line_Fork_L();
+        else if(fork_turn==2)
+            Racing_Line_Fork_R();
+    }
     else if(T_flag==IN_T)
     {
         gpio_set(FMQ,1);
@@ -1572,6 +1704,7 @@ void RaceLine()
     }
     else if(Garage_flag==GET_OUT) Raceing_line_G_L();
     else if(Garage_flag==GET_IN) Raceing_line_G_L();
+    else if(Roundabout_flag==GET_IN_ROUND) stop=1;
     else Racing_Line();
 }
 
@@ -1619,11 +1752,12 @@ void Img_Deal()
     Right_Apex();
     //Angle_IMG();
     Garage_Deal();
+    Roundabout_Deal();
     Fork_Deal();
     T_Conner_Deal();
     RaceLine();
 	//seekfree_sendimg_03x(UART_2,IMG_DATA,188,120);//传输处理后图像
 	//Track();
-//  	if(show_flag==1) lcd_displayimage032_zoom((uint8)IMG_DATA,188,120,160,128);//图像显示
+    //lcd_displayimage032_zoom((uint8)IMG_DATA,188,120,160,128);//图像显示
 	deal_flag=0;
 }

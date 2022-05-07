@@ -33,12 +33,20 @@ typedef enum
 
 typedef enum
 {
-    ROUND_L,
-    ROUND_R,
+    ROUND_READY,
+    GET_IN_READY,
     GET_IN_ROUND,
     GET_OUT_ROUND,
     NO_ROUND,
 }Roundabout_enmum;//环岛
+
+typedef enum
+{
+    ROUND_L,
+    ROUND_R,
+    NOROUND,
+}Roundabout_position_enmum;//环岛
+
 //----------------函数定义区--------------
 void Img_Deal(void);
 void Deal_Init(void);
