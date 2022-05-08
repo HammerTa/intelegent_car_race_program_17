@@ -37,10 +37,10 @@
 #define KEY_COL2 P33_12
 #define KEY_COL3 P33_13
 //-----电机
-#define motor_l_EN       P02_6//左  +
-#define motor_l_PN        ATOM0_CH7_P02_7//左ATOM0_CH5_P02_5
-#define motor_r_EN       P02_4//右  +P02_4
-#define motor_r_PN       ATOM0_CH5_P02_5//右
+#define motor_l_EN       P02_4//左  +
+#define motor_l_PN       ATOM0_CH5_P02_5//左ATOM0_CH5_P02_5
+#define motor_r_EN       P02_6//右  +P02_4
+#define motor_r_PN       ATOM0_CH7_P02_7//右
 #define motor_frequency     13000
 //换板子了记得重测上面四个引脚
 //-----舵机

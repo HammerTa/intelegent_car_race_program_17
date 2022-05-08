@@ -68,6 +68,7 @@ struct DIV left,right;//左右边线
 struct DIV forck_L,forck_R;//三叉判断线路
 struct DIV T_line;//T弯判断线
 struct DIV forck_line_L,forck_line_R;//三叉补线线路
+struct DIV Round_L;Round_R;//环岛补线线路
 struct APEX left_apex,right_apex;
 struct AG right_ag,left_ag;//寻找弯心所需变量
 struct Vector Vector_r,Vector_l;//起止点近似切线向量
@@ -992,15 +993,18 @@ void Roundabout_Deal()
     float cross_row_L,cross_row_R;
     float cross_col;
     cross_col=Cross_col();
-    if(element_flag==IN_JUGED && Roundabout_flag==NO_ROUND) return;
-    if(cross_col<0.75 && Roundabout_flag!=GET_IN_ROUND)
-    {
-        Roundabout_flag=NO_ROUND;
-        element_flag=NO_JUGED;
-        return;
-    }
     cross_row_L=CrossRow_L(75);
     cross_row_R=CrossRow_R(75);
+    if(cross_row_L>0.9 && cross_row_R>0.9)
+    {
+        if(Roundabout_flag!=GET_IN_ROUND && Roundabout_flag!=GET_OUT_ROUND)
+        {
+            Roundabout_flag=NO_ROUND;
+            element_flag=NO_JUGED;
+            Roundabout_flag_position=NOROUND;
+            return;
+        }
+    }
 //    lcd_showfloat(0,0,cross_row_L,2,2);
 //    lcd_showfloat(0,1,cross_row_R,2,2);
 //    lcd_showint32(0,2,Roundabout_flag,5);
@@ -1011,18 +1015,12 @@ void Roundabout_Deal()
             {
                 Roundabout_flag_position=ROUND_L;
                 Roundabout_flag=ROUND_READY;
-                element_flag=IN_JUGED;
+                element_flag=NO_JUGED;
             }
             else if(cross_row_L<0.9 && cross_row_R>0.9)
             {
                 Roundabout_flag_position=ROUND_R;
                 Roundabout_flag=ROUND_READY;
-                element_flag=IN_JUGED;
-            }
-            else if(cross_row_L>0.9 && cross_row_R>0.9)
-            {
-                Roundabout_flag_position=NOROUND;
-                Roundabout_flag=NO_ROUND;
                 element_flag=NO_JUGED;
             }
             break;
@@ -1031,10 +1029,11 @@ void Roundabout_Deal()
             {
                 case ROUND_L:
                     if(cross_row_L<0.85) Roundabout_flag=GET_IN_READY;
-                    element_flag=IN_JUGED;
+                    element_flag=NO_JUGED;
                     break;
                 case ROUND_R:
-
+                    if(cross_row_R<0.85) Roundabout_flag=GET_IN_READY;
+                    element_flag=NO_JUGED;
                     break;
                 case NOROUND:
                     break;
@@ -1048,7 +1047,8 @@ void Roundabout_Deal()
                     element_flag=IN_JUGED;
                     break;
                 case ROUND_R:
-
+                    if(cross_row_R>0.85) Roundabout_flag=GET_IN_ROUND;
+                    element_flag=IN_JUGED;
                     break;
                 case NOROUND:
                     break;
@@ -1059,12 +1059,6 @@ void Roundabout_Deal()
         case GET_OUT_ROUND:
             break;
     }
-//    else
-//    {
-//        Roundabout_flag_position=NO_ROUND;
-//        Roundabout_flag=NO_ROUND;
-//        element_flag=NO_JUGED;
-//    }
 }
 
 
@@ -1643,6 +1637,12 @@ void Raceing_line_T_R()
     }
 }
 
+//**************************************************************
+//* 函数名称： Raceing_line_G_L
+//* 功能说明： 出入车库（向左）
+//* 函数返回：
+//* 备 注：
+//**************************************************************
 void Raceing_line_G_L()
 {
     int i,pin;
@@ -1664,6 +1664,12 @@ void Raceing_line_G_L()
     }
 }
 
+//**************************************************************
+//* 函数名称： Raceing_line_G_R
+//* 功能说明： 出入车库（向右）
+//* 函数返回：
+//* 备 注：
+//**************************************************************
 void Raceing_line_G_R()
 {
     int i,pin;
@@ -1685,6 +1691,122 @@ void Raceing_line_G_R()
     }
 }
 
+void Raceing_line_RoundIn_L()
+{
+    int pin,i;
+    int row,col;
+    int flag;
+    int l_flag,r_flag;
+    l_flag=0;
+    r_flag=0;
+    i=left_apex.Mark;
+    if(left_flag==0&&right_flag==0)
+    {
+        return;
+    }
+    row=left_apex.Apex_Row;
+    for(pin=0;pin<240;pin++)
+    {
+        if(right.Row[i]==254) break;
+        flag=119-pin;
+        if(flag>left_apex.Apex_Row)
+        {
+            middleline[pin]=left_apex.Apex_Col+TrackWild[row]/10;
+            col=middleline[pin];
+            mid_row[pin]=flag;
+            IMG_DATA[flag][col]=GREEN_IMG;
+        }
+        else
+        {
+            row=right.Row[i];
+            col=right.Col[i]+TrackWild[row]/10;
+            middleline[pin]=col;
+            mid_row[pin]=row;
+            i++;
+            if(row>5&&row<ROW-5)
+            {
+                if(col>5&&col<COL-5)
+                {
+                    IMG_DATA[row][col]=GREEN_IMG;
+                }
+            }
+        }
+    }
+    return;
+}
+
+//**************************************************************
+//* 函数名称： Raceing_line_RoundIn_R
+//* 功能说明： 右环岛进入补线
+//* 函数返回：
+//* 备 注：
+//**************************************************************
+void Raceing_line_RoundIn_R()
+{
+    int pin,i;
+    int row,col;
+    int flag;
+    int l_flag,r_flag;
+    l_flag=0;
+    r_flag=0;
+    i=right_apex.Mark;
+    if(left_flag==0&&right_flag==0)
+    {
+        return;
+    }
+    row=right_apex.Apex_Row;
+    for(pin=0;pin<240;pin++)
+    {
+        if(right.Row[i]==254) break;
+        flag=119-pin;
+        if(flag>right_apex.Apex_Row)
+        {
+            middleline[pin]=right_apex.Apex_Col-TrackWild[row]/10;
+            col=middleline[pin];
+            mid_row[pin]=flag;
+            IMG_DATA[flag][col]=GREEN_IMG;
+        }
+        else
+        {
+            row=right.Row[i];
+            col=right.Col[i]-TrackWild[row]/10;
+            middleline[pin]=col;
+            mid_row[pin]=row;
+            i++;
+            if(row>5&&row<ROW-5)
+            {
+                if(col>5&&col<COL-5)
+                {
+                    IMG_DATA[row][col]=GREEN_IMG;
+                }
+            }
+        }
+    }
+    return;
+}
+
+//**************************************************************
+//* 函数名称： Raceing_line_RoundIn_L
+//* 功能说明： 左环岛离开补线
+//* 函数返回：
+//* 备 注：
+//**************************************************************
+void Raceing_line_RoundOUT_L()
+{
+    RacingLine_R(2);
+}
+
+//**************************************************************
+//* 函数名称： Raceing_line_RoundIn_L
+//* 功能说明： 右环岛离开补线
+//* 函数返回：
+//* 备 注：
+//**************************************************************
+void Raceing_line_RoundOUT_R()
+{
+    RacingLine_L(2);
+}
+
 void RaceLine()
 {
     if(Fork_Flag==IN_FORK)
@@ -1704,7 +1826,14 @@ void RaceLine()
     }
     else if(Garage_flag==GET_OUT) Raceing_line_G_L();
     else if(Garage_flag==GET_IN) Raceing_line_G_L();
-    else if(Roundabout_flag==GET_IN_ROUND) stop=1;
+    else if(Roundabout_flag==GET_IN_ROUND)
+    {
+        stop=1;
+    }
+    else if(Roundabout_flag==GET_OUT_ROUND)
+    {
+        stop=1;
+    }
     else Racing_Line();
 }
 
@@ -1752,9 +1881,9 @@ void Img_Deal()
     Right_Apex();
     //Angle_IMG();
     Garage_Deal();
-    Roundabout_Deal();
     Fork_Deal();
     T_Conner_Deal();
+    //Roundabout_Deal();
     RaceLine();
 	//seekfree_sendimg_03x(UART_2,IMG_DATA,188,120);//传输处理后图像
 	//Track();
