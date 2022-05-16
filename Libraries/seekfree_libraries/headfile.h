@@ -43,6 +43,7 @@
 #define motor_r_PN       ATOM0_CH7_P02_7//右
 #define motor_frequency     13000
 //换板子了记得重测上面四个引脚
+//ps 我知道两个搞反了别骂了别骂了QAQ
 //-----舵机
 #define steering_gear     ATOM1_CH1_P33_9
 #define steering_frequency 50

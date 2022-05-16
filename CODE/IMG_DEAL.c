@@ -68,7 +68,7 @@ struct DIV left,right;//左右边线
 struct DIV forck_L,forck_R;//三叉判断线路
 struct DIV T_line;//T弯判断线
 struct DIV forck_line_L,forck_line_R;//三叉补线线路
-struct DIV Round_L;Round_R;//环岛补线线路
+struct DIV Round_L,Round_R;//环岛补线线路
 struct APEX left_apex,right_apex;
 struct AG right_ag,left_ag;//寻找弯心所需变量
 struct Vector Vector_r,Vector_l;//起止点近似切线向量
@@ -170,7 +170,7 @@ void Deal_Init()
 //            IMG_DATA[i][j]=mt9v03x_image[i][j];
 //        }
 //    }
-    Threshold=GetOSTU(IMG_DATA)-20;
+    Threshold=GetOSTU(IMG_DATA);
     for(i=0;i<ROW;i++)
     {
         for(j=0;j<COL;j++)
@@ -202,6 +202,13 @@ void Deal_Init()
 		    forck_L.Col[pin]=254;
 		    forck_R.Row[pin]=254;
 		    forck_R.Col[pin]=254;
+		}
+		if(Roundabout_flag==NO_ROUND || Roundabout_flag==GET_OUT_ROUND)
+		{
+		    Round_L.Row[pin]=254;
+		    Round_L.Col[pin]=254;
+		    Round_R.Row[pin]=254;
+		    Round_R.Col[pin]=254;
 		}
 		T_line.Row[pin]=254;
 		T_line.Col[pin]=254;
@@ -390,12 +397,13 @@ void Deal_Init()
      int xy=0;
      int x_sq=0;
      float k,b;
-     float S=0;
+     float S;
      float x_avg=0;
      float y_avg=0;
      float x_avg_sq=0;
      int y_tg;
      int i,num;
+     S=254;
      for(i=0,num=0;i<240;i++)
      {
          if(col[i]==254||i==N)
@@ -541,7 +549,6 @@ void left_jump()
 						IMG_DATA[row][col + 1] = RED_IMG;
 						find = 1;
 						L_lenth++;
-
 						left_end_row=row;
 						left_end_col=col;
 						break;
@@ -595,7 +602,6 @@ void right_jump()
 						right.Row[pin] = row;
 						right.Col[pin] = col - 1;
 						IMG_DATA[row][col - 1] = BLUE_IMG;
-
 						find = 1;
 						R_lenth++;
 						right_end_row=row;
@@ -711,7 +717,7 @@ void Left_Apex()
     }
     left_apex.Apex_Row=row_flag;
     left_apex.Apex_Col=col_flag;
-	L_S=S_jugde(left.Col,left.Row,left_apex.Mark);
+	L_S=S_jugde(left.Row,left.Col,240);
 }//寻找左弯心
 
 void Right_Apex()
@@ -740,7 +746,7 @@ void Right_Apex()
     }
     right_apex.Apex_Row=row_flag;
     right_apex.Apex_Col=col_flag;
-	R_S=S_jugde(right.Col,right.Row,right_apex.Mark);
+	R_S=S_jugde(right.Row,right.Col,240);
 }//寻找右弯心
 
 //***************************************************************
@@ -926,54 +932,8 @@ void protect()
 }
 
 //***************************************************************
-//* 函数名称： angle
-//* 功能说明： 边线各角度数据
-//* 函数返回：
-//* 备 注：
-//***************************************************************
-//void Angle_IMG()
-//{
-//    float diancheng,mocheng;
-//    if(L_lenth<10)
-//    {
-//        return;
-//    }
-//    if(R_lenth<10)
-//    {
-//        return;
-//    }
-//    Vector_l.star[0]=(float)left.Col[5]-left.Col[1];//左起点向量x
-//    Vector_l.star[1]=(float)left.Row[5]-left.Row[1];//左起点向量y
-//    Vector_l.end[0]=(float)left.Col[L_lenth-1]-left.Col[L_lenth-8];//左终点向量x
-//    Vector_l.end[1]=(float)left.Row[L_lenth-1]-left.Row[L_lenth-8];//左终点向量y
-//    Vector_r.star[0]=(float)right.Col[5]-right.Col[1];//左起点向量x
-//    Vector_r.star[1]=(float)right.Row[5]-right.Row[1];//左起点向量y
-//    Vector_r.end[0]=(float)right.Col[L_lenth-1]-right.Col[L_lenth-8];//左终点向量x
-//    Vector_r.end[1]=(float)right.Row[L_lenth-1]-right.Row[L_lenth-8];//左终点向量y
-//    diancheng=0.1*Vector_l.end[0]*Vector_r.end[0]+Vector_l.end[1]*Vector_r.end[1];
-//    mocheng=0.1*(Vector_l.end[0]*Vector_l.end[0]+Vector_l.end[1]*Vector_l.end[1])*(Vector_r.end[0]*Vector_r.end[0]+Vector_r.end[1]*Vector_r.end[1]);
-//    Angle_end=diancheng/sqrt(mocheng);
-//    Angle_end=Angle_end*180/3.14;
-//    Angle_End[COUNT]=Angle_end*0.1;
-//    COUNT++;
-//    Angle_end=0;
-//    for(int j=0;j<10;j++)
-//    {
-//      Angle_end+=Angle_End[j];
-//    }
-//    if(COUNT>=10)
-//    {
-//      COUNT=0;
-//    }//滤波
-//    if(Angle_end<0)
-//    {
-//        Angle_end=0-Angle_end;
-//    }
-//}
-
-//***************************************************************
-//* 函数名称： angle
-//* 功能说明： 边线各角度数据
+//* 函数名称： Conner_cheack
+//* 功能说明： 检查弯道
 //* 函数返回：
 //* 备 注：
 //***************************************************************
@@ -990,34 +950,30 @@ void Conner_cheack()
 //***************************************************************
 void Roundabout_Deal()
 {
+    int row,col,i;
+    int col_min,col_max;
     float cross_row_L,cross_row_R;
-    float cross_col;
-    cross_col=Cross_col();
-    cross_row_L=CrossRow_L(75);
-    cross_row_R=CrossRow_R(75);
-    if(cross_row_L>0.9 && cross_row_R>0.9)
-    {
-        if(Roundabout_flag!=GET_IN_ROUND && Roundabout_flag!=GET_OUT_ROUND)
-        {
-            Roundabout_flag=NO_ROUND;
-            element_flag=NO_JUGED;
-            Roundabout_flag_position=NOROUND;
-            return;
-        }
-    }
-//    lcd_showfloat(0,0,cross_row_L,2,2);
-//    lcd_showfloat(0,1,cross_row_R,2,2);
-//    lcd_showint32(0,2,Roundabout_flag,5);
+    float cross_col,crossrow_juged;
+    float round_l_s,round_r_s;
+    cross_col=CorssCol;
     switch(Roundabout_flag)
     {
         case NO_ROUND:
-            if(cross_row_L>0.9 && cross_row_R<0.9)
+            cross_row_L=CrossRow_L(75);
+            cross_row_R=CrossRow_R(75);
+            if(element_flag==IN_JUGED)
+            {
+                Roundabout_flag_position=NOROUND;
+                Roundabout_flag=NO_ROUND;
+                return;
+            }
+            if(cross_row_L>0.9 && cross_row_R<0.8 && R_S<0.4)
             {
                 Roundabout_flag_position=ROUND_L;
                 Roundabout_flag=ROUND_READY;
                 element_flag=NO_JUGED;
             }
-            else if(cross_row_L<0.9 && cross_row_R>0.9)
+            else if(cross_row_L<0.8 && cross_row_R>0.9 && L_S<0.4)
             {
                 Roundabout_flag_position=ROUND_R;
                 Roundabout_flag=ROUND_READY;
@@ -1025,42 +981,211 @@ void Roundabout_Deal()
             }
             break;
         case ROUND_READY:
+            round_l_s=L_S;
+            round_r_s=R_S;
+            if(element_flag==IN_JUGED)
+            {
+                Roundabout_flag_position=NOROUND;
+                Roundabout_flag=NO_ROUND;
+                return;
+            }
+            if(CorssCol<0.75)
+            {
+                Roundabout_flag=NO_ROUND;
+                element_flag=NO_JUGED;
+                return;
+            }
             switch (Roundabout_flag_position)
             {
                 case ROUND_L:
-                    if(cross_row_L<0.85) Roundabout_flag=GET_IN_READY;
-                    element_flag=NO_JUGED;
+                    if(round_l_s>0.9 && round_r_s<0.4)
+                    {
+                        Roundabout_flag=GET_IN_READY;
+                        element_flag=NO_JUGED;
+                    }
+                    else if(round_r_s>0.5)
+                    {
+                        Roundabout_flag=NO_ROUND;
+                        element_flag=NO_JUGED;
+                    }
                     break;
                 case ROUND_R:
-                    if(cross_row_R<0.85) Roundabout_flag=GET_IN_READY;
-                    element_flag=NO_JUGED;
+                    if(round_l_s<0.4 && round_r_s>0.9)
+                    {
+                        Roundabout_flag=GET_IN_READY;
+                        element_flag=NO_JUGED;
+                    }
+                    else if(round_l_s>0.5)
+                    {
+                        Roundabout_flag=NO_ROUND;
+                        element_flag=NO_JUGED;
+                    }
                     break;
                 case NOROUND:
                     break;
             }
             break;
         case GET_IN_READY:
+            round_l_s=L_S;
+            round_r_s=R_S;
             switch (Roundabout_flag_position)
             {
                 case ROUND_L:
-                    if(cross_row_L>0.85) Roundabout_flag=GET_IN_ROUND;
-                    element_flag=IN_JUGED;
+                    col_min=left_apex.Apex_Col;
+                    col_max=COL/2;
+                    if(round_r_s>0.5)
+                    {
+                        Roundabout_flag=NO_ROUND;
+                        element_flag=NO_JUGED;
+                    }
+                    for(row=left_end_row;row>5;row--)
+                    {
+                        for(col=col_min;col<col_max;col++)
+                        {
+                            if(IMG_DATA[row][col]==WHITE_IMG && IMG_DATA[row][col+1]==BLACK_IMG)
+                            {
+                                Round_L.Row[0]=row;
+                                Round_L.Col[0]=col+1;
+                                crossrow_juged=CrossRow_L(row);
+                                if(crossrow_juged>0.8 && cross_col>0.75)
+                                {
+                                    gpio_set(FMQ,1);
+                                    Roundabout_flag=GET_IN_ROUND;
+                                    element_flag=IN_JUGED;
+                                }
+                            }
+                        }
+                    }
                     break;
                 case ROUND_R:
-                    if(cross_row_R>0.85) Roundabout_flag=GET_IN_ROUND;
-                    element_flag=IN_JUGED;
+                    col_min=COL/2;
+                    col_max=right_apex.Apex_Col;
+                    if(round_l_s>0.5)
+                    {
+                        Roundabout_flag=NO_ROUND;
+                        element_flag=NO_JUGED;
+                    }
+                    for(row=right_end_row;row>5;row--)
+                    {
+                        for(col=col_max;col>col_min;col--)
+                        {
+                            if(IMG_DATA[row][col]==WHITE_IMG && IMG_DATA[row][col-1]==BLACK_IMG)
+                            {
+                                Round_R.Row[0]=row;
+                                Round_R.Col[0]=col-1;
+                                crossrow_juged=CrossRow_R(row);
+                                if(crossrow_juged>0.8 && cross_col>0.75)
+                                {
+                                    gpio_set(FMQ,1);
+                                    Roundabout_flag=GET_IN_ROUND;
+                                    element_flag=IN_JUGED;
+                                }
+                            }
+                        }
+                    }
                     break;
                 case NOROUND:
                     break;
             }
             break;
         case GET_IN_ROUND:
+            gpio_set(FMQ,1);
+            switch (Roundabout_flag_position)
+            {
+                case ROUND_L:
+                    col_min=Round_L.Col[0]-5;
+                    col_max=Round_L.Col[0]+15;
+                    for(row=Round_L.Row[0]-5;row<Round_L.Row[0]+15;row++)
+                    {
+                        for(col=col_min;col<col_max;col++)
+                        {
+                            if(row==right.Row[0] && col==right.Col[0])
+                            {
+                                Roundabout_flag=GET_OUT_ROUND;
+                                for(i=1;i<240;i++)
+                                {
+                                    Round_L.Row[i]=254;
+                                    Round_L.Col[i]=254;
+                                }
+                                break;
+                            }
+                            if(IMG_DATA[row][col]==WHITE_IMG && IMG_DATA[row][col+1]==BLACK_IMG)
+                            {
+                                Round_L.Row[0]=row;
+                                Round_L.Col[0]=col+1;
+                            }
+                        }
+                    }
+                    if(Round_L.Row[0]>95)
+                    {
+                        Roundabout_flag=GET_OUT_ROUND;
+                        for(i=1;i<240;i++)
+                        {
+                            Round_L.Row[i]=254;
+                            Round_L.Col[i]=254;
+                        }
+                    }
+                    break;
+                case ROUND_R:
+                    col_min=Round_R.Col[0]-15;
+                    col_max=Round_R.Col[0]+5;
+                    for(row=Round_R.Row[0]-5;row<Round_R.Row[0]+15;row++)
+                    {
+                        for(col=col_max;col<col_min;col--)
+                        {
+                            if(row==left.Row[0] && col==left.Col[0])
+                            {
+                                Roundabout_flag=GET_OUT_ROUND;
+                                for(i=1;i<240;i++)
+                                {
+                                    Round_R.Row[i]=254;
+                                    Round_R.Col[i]=254;
+                                }
+                                break;
+                            }
+                            if(IMG_DATA[row][col]==WHITE_IMG && IMG_DATA[row][col+1]==BLACK_IMG)
+                            {
+                                Round_R.Row[0]=row;
+                                Round_R.Col[0]=col-1;                            }
+                        }
+                    }
+                    if(Round_R.Row[0]>95)
+                    {
+                        Roundabout_flag=GET_OUT_ROUND;
+                        for(i=1;i<240;i++)
+                        {
+                            Round_R.Row[i]=254;
+                            Round_R.Col[i]=254;
+                        }
+                    }
+                    break;
+                case NOROUND:
+                    break;
+            }
             break;
         case GET_OUT_ROUND:
+            switch (Roundabout_flag_position)
+            {
+                case ROUND_L:
+                    if(cross_col>0.7)
+                    {
+                        Roundabout_flag=NO_ROUND;
+                        element_flag=NO_JUGED;
+                    }
+                    break;
+                case ROUND_R:
+                    if(cross_col>0.7)
+                    {
+                        Roundabout_flag=NO_ROUND;
+                        element_flag=NO_JUGED;
+                    }
+                    break;
+                case NOROUND:
+                    break;
+            }
             break;
     }
 }
-
 
 //**************************************************************
 //* 函数名称： T_Conner_Deal
@@ -1124,25 +1249,6 @@ void T_Conner_Deal()
         }
     }
 }
-
-//**************************************************************
-//* 函数名称： Cross_deal
-//* 功能说明： 十字识别
-//* 函数返回：
-//* 备 注：
-//**************************************************************
-//void Cross_deal()
-//{
-//    float L_cross,R_cross,Col_cross;
-//    int T_flag=0;
-//    L_cross=CrossRow_L();
-//    R_cross=CrossRow_R();
-//    Col_cross=Cross_col();
-//    if(L_cross>0.85 && R_cross>0.85 && Col_cross>0.85)
-//    {
-//        T_flag=IN_T;
-//    }
-//}
 
 //***************************************************************
 //* 函数名称： Fork_Deal
@@ -1350,30 +1456,6 @@ void Garage_Deal()
     }
 }
 
-void Track()
-{
-    int row1,col1;
-    int row2,col2;
-    int row3,col3;
-    int row4,col4;
-    row1=left.Row[0];
-    col1=left.Col[0];
-    row2=right.Row[0];
-    col2=right.Col[0];
-    row3=left.Row[10];
-    col3=left.Col[10];
-    row4=right.Row[10];
-    col4=right.Col[10];
-    lcd_showint32(0,0,row1,3);
-    lcd_showint32(0,1,col1,3);
-    lcd_showint32(0,2,row2,3);
-    lcd_showint32(0,3,col2,3);
-    lcd_showint32(0,4,row3,3);
-    lcd_showint32(0,5,col3,3);
-    lcd_showint32(0,6,row4,3);
-    lcd_showint32(0,7,col4,3);
-}
-
 //***************************************************************
 //* 函数名称： RacingLine_L
 //* 功能说明： 左边线寻到底，但是更偏(1/3)
@@ -1441,35 +1523,35 @@ void RacingLine_R(int k)
     i=0;
     if(left_flag==0&&right_flag==0)
     {
-      return;
+        return;
     }
-        mark=R_lenth+(115-right.Row[0]);
-        if(mark>240) mark=240;
-        row=right.Row[0];
-        for(pin=0;pin<mark;pin++)
-        {
+    mark=R_lenth+(115-right.Row[0]);
+    if(mark>240) mark=240;
+    row=right.Row[0];
+    for(pin=0;pin<mark;pin++)
+    {
         flag=119-pin;
         if(flag>right.Row[0])
         {
-          middleline[pin]=right.Col[0]-TrackWild[row]/k;
-          col=middleline[pin];
-          mid_row[pin]=flag;
-          IMG_DATA[flag][col]=GREEN_IMG;
+            middleline[pin]=right.Col[0]-TrackWild[row]/k;
+            col=middleline[pin];
+            mid_row[pin]=flag;
+            IMG_DATA[flag][col]=GREEN_IMG;
         }
         else
         {
-          row=right.Row[i];
-          col=right.Col[i]-TrackWild[row]/k;
-          middleline[pin]=col;
-          mid_row[pin]=row;
-          i++;
-          if(row>5&&row<ROW-5)
-          {
-            if(col>5&&col<COL-5)
+            row=right.Row[i];
+            col=right.Col[i]-TrackWild[row]/k;
+            middleline[pin]=col;
+            mid_row[pin]=row;
+            i++;
+            if(row>5&&row<ROW-5)
             {
-                IMG_DATA[row][col]=GREEN_IMG;
+                if(col>5&&col<COL-5)
+                {
+                    IMG_DATA[row][col]=GREEN_IMG;
+                }
             }
-          }
         }
     }
     return;
@@ -1483,10 +1565,6 @@ void RacingLine_R(int k)
 //***************************************************************
 void Racing_Line_Fork_L()
 {
-//    gpio_set(FMQ,1);
-//    if(left.Col[0]>right.Col[0]) RacingLine_R(2);
-//    else RacingLine_L(5);
-//    return;
     int pin,i;
     int row,col;
     int flag;
@@ -1534,10 +1612,6 @@ void Racing_Line_Fork_L()
 //***************************************************************
 void Racing_Line_Fork_R()
 {
-//    gpio_set(FMQ,1);
-//    if(left.Col[0]>right.Col[0]) RacingLine_R(2);
-//    else RacingLine_L(5);
-//    return;
     int pin,i;
     int row,col;
     int flag;
@@ -1690,36 +1764,72 @@ void Raceing_line_G_R()
         RacingLine_R(10);
     }
 }
-
+//**************************************************************
+//* 函数名称： Raceing_line_RoundIn_L
+//* 功能说明： 左环岛进入补线
+//* 函数返回：
+//* 备 注：
+//**************************************************************
 void Raceing_line_RoundIn_L()
 {
-    int pin,i;
-    int row,col;
-    int flag;
-    int l_flag,r_flag;
-    l_flag=0;
-    r_flag=0;
-    i=left_apex.Mark;
-    if(left_flag==0&&right_flag==0)
+    int pin,pinn;//, i, j;
+    int row, col,find;
+    int colmin, colmax;
+    int flag,i;
+    pinn=0;
+    if(Round_L.Row[0] == 254)
     {
         return;
     }
-    row=left_apex.Apex_Row;
+    for(pin=1,row=Round_L.Row[0] - pin;pin<240;pin++)
+    {
+        find = 0;
+        row = Round_L.Row[0] - pin;
+        if(row<=15)break;
+        colmin = Round_L.Col[pin - 1] - 10;
+        colmax = Round_L.Col[pin - 1] + 10;
+        for(col = colmax;col >= colmin;col--)
+        {
+            if(col > COL - 5) col=COL - 5;
+            if(col > 5)
+            {
+                if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col - 1] == BLACK_IMG)
+                {
+                    if(IMG_DATA[row][col - 2] == WHITE_IMG && IMG_DATA[row][col - 3] == WHITE_IMG)
+                    {
+                        Round_L.Row[pin] = row;
+                        Round_L.Col[pin] = col - 1;
+                        find = 1;
+                        break;
+                    }
+                }
+            }
+        }
+        if(find == 0)
+        {
+            break;
+        }
+    }
+    row=Round_L.Row[0];
     for(pin=0;pin<240;pin++)
     {
-        if(right.Row[i]==254) break;
+        if(Round_L.Row[pin]==254) break;
         flag=119-pin;
-        if(flag>left_apex.Apex_Row)
+        if(flag>Round_L.Row[0])
         {
-            middleline[pin]=left_apex.Apex_Col+TrackWild[row]/10;
-            col=middleline[pin];
-            mid_row[pin]=flag;
-            IMG_DATA[flag][col]=GREEN_IMG;
+            if(right.Col[pinn]!=254)
+            {
+                middleline[pin]=right.Col[pinn]-TrackWild[right.Row[pinn]]/2-TrackWild[right.Row[pinn]]/5;
+                col=middleline[pin];
+                mid_row[pin]=right.Row[pinn];
+                IMG_DATA[flag][col]=GREEN_IMG;
+                pinn++;
+            }
         }
         else
         {
-            row=right.Row[i];
-            col=right.Col[i]+TrackWild[row]/10;
+            row=Round_L.Row[i];
+            col=Round_L.Col[i]-TrackWild[row]/2;
             middleline[pin]=col;
             mid_row[pin]=row;
             i++;
@@ -1743,33 +1853,65 @@ void Raceing_line_RoundIn_L()
 //**************************************************************
 void Raceing_line_RoundIn_R()
 {
-    int pin,i;
-    int row,col;
-    int flag;
-    int l_flag,r_flag;
-    l_flag=0;
-    r_flag=0;
-    i=right_apex.Mark;
-    if(left_flag==0&&right_flag==0)
+    int pin,pinn;//, i, j;
+    int row, col,find;
+    int colmin, colmax;
+    int flag,i;
+    pinn=0;
+    if(Round_R.Row[0] == 254)
     {
         return;
     }
-    row=right_apex.Apex_Row;
+    pin=1;
+    for(row=Round_R.Row[0] - pin;pin<240;pin++)
+    {
+        find = 0;
+        row = Round_R.Row[0] - pin;
+        if(row<=15)break;
+        colmin = Round_R.Col[pin - 1] - 10;
+        colmax = Round_R.Col[pin - 1] + 10;
+        for(col = colmin;col <= colmax;col++)
+        {
+            if(col<5) col=5;
+            if(col < COL - 5)
+            {
+                if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col + 1] == BLACK_IMG)
+                {
+                    if(IMG_DATA[row][col + 2] == WHITE_IMG && IMG_DATA[row][col + 3] == WHITE_IMG)
+                    {
+                        Round_R.Row[pin] = row;
+                        Round_R.Col[pin] = col + 1;
+                        find = 1;
+                        break;
+                    }
+                }
+            }
+        }
+        if(find == 0)
+        {
+            break;
+        }
+    }
+    row=Round_R.Row[0];
     for(pin=0;pin<240;pin++)
     {
-        if(right.Row[i]==254) break;
+        if(Round_R.Row[pin]==254) break;
         flag=119-pin;
-        if(flag>right_apex.Apex_Row)
+        if(flag>Round_R.Row[0])
         {
-            middleline[pin]=right_apex.Apex_Col-TrackWild[row]/10;
-            col=middleline[pin];
-            mid_row[pin]=flag;
-            IMG_DATA[flag][col]=GREEN_IMG;
+            if(left.Col[pinn]!=254)
+            {
+                middleline[pin]=left.Col[pinn]+TrackWild[left.Row[pinn]]/2+TrackWild[left.Row[pinn]]/5;
+                col=middleline[pin];
+                mid_row[pin]=left.Row[pinn];
+                IMG_DATA[flag][col]=GREEN_IMG;
+                pinn++;
+            }
         }
         else
         {
-            row=right.Row[i];
-            col=right.Col[i]-TrackWild[row]/10;
+            row=Round_R.Row[i];
+            col=Round_R.Col[i]+TrackWild[row]/2;
             middleline[pin]=col;
             mid_row[pin]=row;
             i++;
@@ -1793,7 +1935,44 @@ void Raceing_line_RoundIn_R()
 //**************************************************************
 void Raceing_line_RoundOUT_L()
 {
-    RacingLine_R(2);
+    int pin,i;
+    int row,col;
+    int flag;
+    for(pin=0;pin<240;pin++)
+    {
+        if(right.Row[pin]==254) break;
+        Round_L.Row[pin]=right.Row[pin];
+        Round_L.Col[pin]=right.Col[pin];
+    }
+    row=Round_L.Row[0];
+    for(pin=0;pin<240;pin++)
+    {
+        if(Round_L.Row[pin]==254) break;
+        flag=119-pin;
+        if(flag>Round_L.Row[0])
+        {
+            middleline[pin]=Round_L.Col[0];
+            col=middleline[pin];
+            mid_row[pin]=flag;
+            IMG_DATA[flag][col]=GREEN_IMG;
+        }
+        else
+        {
+            row=Round_L.Row[i];
+            col=Round_L.Col[i]-TrackWild[row]/2;
+            middleline[pin]=col;
+            mid_row[pin]=row;
+            i++;
+            if(row>5&&row<ROW-5)
+            {
+                if(col>5&&col<COL-5)
+                {
+                    IMG_DATA[row][col]=GREEN_IMG;
+                }
+            }
+        }
+    }
+    return;
 }
 
 //**************************************************************
@@ -1804,7 +1983,44 @@ void Raceing_line_RoundOUT_L()
 //**************************************************************
 void Raceing_line_RoundOUT_R()
 {
-    RacingLine_L(2);
+    int pin,i;
+    int row,col;
+    int flag;
+    for(pin=0;pin<240;pin++)
+    {
+        if(left.Row[pin]==254) break;
+        Round_R.Row[pin]=left.Row[pin];
+        Round_R.Col[pin]=left.Col[pin];
+    }
+    row=Round_R.Row[0];
+    for(pin=0;pin<240;pin++)
+    {
+        if(Round_R.Row[pin]==254) break;
+        flag=119-pin;
+        if(flag>Round_R.Row[0])
+        {
+            middleline[pin]=Round_R.Col[0];
+            col=middleline[pin];
+            mid_row[pin]=flag;
+            IMG_DATA[flag][col]=GREEN_IMG;
+        }
+        else
+        {
+            row=Round_R.Row[i];
+            col=Round_R.Col[i]-TrackWild[row]/2;
+            middleline[pin]=col;
+            mid_row[pin]=row;
+            i++;
+            if(row>5&&row<ROW-5)
+            {
+                if(col>5&&col<COL-5)
+                {
+                    IMG_DATA[row][col]=GREEN_IMG;
+                }
+            }
+        }
+    }
+    return;
 }
 
 void RaceLine()
@@ -1828,30 +2044,22 @@ void RaceLine()
     else if(Garage_flag==GET_IN) Raceing_line_G_L();
     else if(Roundabout_flag==GET_IN_ROUND)
     {
-        stop=1;
+        gpio_set(FMQ,1);
+        if(Roundabout_flag_position==ROUND_L)
+            Raceing_line_RoundIn_L();
+        else if(Roundabout_flag_position==ROUND_R)
+            Raceing_line_RoundIn_R();
     }
     else if(Roundabout_flag==GET_OUT_ROUND)
     {
-        stop=1;
+        gpio_set(FMQ,1);
+        if(Roundabout_flag_position==ROUND_L)
+            Raceing_line_RoundOUT_L();
+        else if(Roundabout_flag_position==ROUND_R)
+            Raceing_line_RoundOUT_R();
     }
     else Racing_Line();
 }
-
-//***************************************************************
-//* 函数名称： FPS
-//* 功能说明： 实际帧数计算
-//* 函数返回：
-//* 备 注：
-//***************************************************************
-//void FPS()
-//{
-//
-//}
-
-//void EM_show()
-//{
-//    lcd_showfloat();
-//}
 
 //***************************************************************
 //* 函数名称： Img_Deal
@@ -1861,11 +2069,6 @@ void RaceLine()
 //***************************************************************
 void Img_Deal()
 { 
-    if(stop==1)
-    {
-        Garage_flag=GET_OUT;
-        return;
-    }
     Deal_Init();
     InitData();
     deal_flag=1;
@@ -1879,14 +2082,10 @@ void Img_Deal()
 	right_jump();
     Left_Apex();
     Right_Apex();
-    //Angle_IMG();
     Garage_Deal();
     Fork_Deal();
     T_Conner_Deal();
-    //Roundabout_Deal();
+    Roundabout_Deal();
     RaceLine();
-	//seekfree_sendimg_03x(UART_2,IMG_DATA,188,120);//传输处理后图像
-	//Track();
-    //lcd_displayimage032_zoom((uint8)IMG_DATA,188,120,160,128);//图像显示
-	deal_flag=0;
+    deal_flag=0;
 }

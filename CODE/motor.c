@@ -348,8 +348,8 @@ void motor_pid()
 //***************************************************************
 void pwm_out()
 {
-    left_pwm_out=2500;
-    right_pwm_out=-2500;//如果注释取消 则为开环
+//    left_pwm_out=-2500;
+//    right_pwm_out=0;//如果注释取消 则为开环
     if(pwm0_flag==1)
     {
         left_pwm_out=0;
@@ -357,12 +357,12 @@ void pwm_out()
     }
     if(left_pwm_out>=0)
     {
-        gpio_set(motor_l_EN,0);
+        gpio_set(motor_l_EN,1);
         pwm_duty(motor_l_PN,left_pwm_out);
     }
     else
     {
-        gpio_set(motor_l_EN,1);
+        gpio_set(motor_l_EN,0);
         pwm_duty(motor_l_PN,-left_pwm_out);
     }
     if(right_pwm_out>=0)
