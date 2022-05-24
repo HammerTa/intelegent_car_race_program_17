@@ -36,7 +36,11 @@ typedef enum
     ROUND_READY,
     GET_IN_READY,
     GET_IN_ROUND,
+    IN_ROUND,
     GET_OUT_ROUND,
+    OUTTING,
+    OUT_WAY,
+    OUT_ROUND,
     NO_ROUND,
 }Roundabout_enmum;//»·µº
 

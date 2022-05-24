@@ -47,11 +47,8 @@ int core0_main(void)
 	{
 		//用户在此处编写任务代码
 	    key_control();
-	    bluesend();
-//        if(deal_flag==1)
-//        {
-//            seekfree_sendimg_03x(UART_2,mt9v03x_image,188,120);
-//        }
+//	    bluesend();
+        //seekfree_sendimg_03x(UART_2,mt9v03x_image,188,120);
 	}
 }
 
