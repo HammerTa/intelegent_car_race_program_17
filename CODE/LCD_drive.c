@@ -400,19 +400,19 @@ void data_change(int key_input)
             switch(title_flag)
             {
                 case 0:
-                    gear_data[point_flag-1]-=0.1;
+                    gear_data[point_flag-1]-=10;
                     break;
                 case 1:
-                    L_motor_data[point_flag-1]-=0.1;
+                    L_motor_data[point_flag-1]-=10;
                     break;
                 case 2:
-                    R_motor_data[point_flag-1]-=0.1;
+                    R_motor_data[point_flag-1]-=10;
                     break;
                 case 3:
                     if(point_flag==3)
-                        speed_data[point_flag-1]-=0.01;
+                        speed_data[point_flag-1]-=1;
                     else
-                        speed_data[point_flag-1]-=0.1;
+                        speed_data[point_flag-1]-=10;
                     break;
                 case 4:
                     break;
@@ -427,19 +427,19 @@ void data_change(int key_input)
             switch(title_flag)
             {
                 case 0:
-                    gear_data[point_flag-1]+=0.1;
+                    gear_data[point_flag-1]+=10;
                     break;
                 case 1:
-                        L_motor_data[point_flag-1]+=0.1;
+                        L_motor_data[point_flag-1]+=10;
                     break;
                 case 2:
-                        R_motor_data[point_flag-1]+=0.1;
+                        R_motor_data[point_flag-1]+=10;
                     break;
                 case 3:
                     if(point_flag==3)
-                        speed_data[point_flag-1]+=0.01;
+                        speed_data[point_flag-1]+=1;
                     else
-                        speed_data[point_flag-1]+=0.1;
+                        speed_data[point_flag-1]+=10;
                     break;
                 case 4:
                     break;

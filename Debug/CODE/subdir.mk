@@ -8,6 +8,7 @@ C_SRCS += \
 ../CODE/LCD_drive.c \
 ../CODE/VCAN_computer.c \
 ../CODE/ZZK_Threshold.c \
+../CODE/gyroscope.c \
 ../CODE/inti.c \
 ../CODE/motor.c 
 
@@ -16,6 +17,7 @@ OBJS += \
 ./CODE/LCD_drive.o \
 ./CODE/VCAN_computer.o \
 ./CODE/ZZK_Threshold.o \
+./CODE/gyroscope.o \
 ./CODE/inti.o \
 ./CODE/motor.o 
 
@@ -24,6 +26,7 @@ COMPILED_SRCS += \
 ./CODE/LCD_drive.src \
 ./CODE/VCAN_computer.src \
 ./CODE/ZZK_Threshold.src \
+./CODE/gyroscope.src \
 ./CODE/inti.src \
 ./CODE/motor.src 
 
@@ -32,6 +35,7 @@ C_DEPS += \
 ./CODE/LCD_drive.d \
 ./CODE/VCAN_computer.d \
 ./CODE/ZZK_Threshold.d \
+./CODE/gyroscope.d \
 ./CODE/inti.d \
 ./CODE/motor.d 
 

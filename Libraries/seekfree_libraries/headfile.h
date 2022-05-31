@@ -128,5 +128,6 @@
 #include "motor.h"
 #include "VCAN_computer.h"
 #include "LCD_drive.h"
+#include "gyroscope.h"
 #endif
 
