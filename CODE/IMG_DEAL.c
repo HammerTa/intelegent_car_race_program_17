@@ -1076,7 +1076,7 @@ void Roundabout_Deal()
                         Roundabout_flag=NO_ROUND;
                         element_flag=NO_JUGED;
                     }
-                    for(row=50;row>30;row--)
+                    for(row=50;row>28;row--)
                     {
                         for(col=col_min;col<col_max;col++)
                         {
@@ -1104,7 +1104,7 @@ void Roundabout_Deal()
                         Roundabout_flag=NO_ROUND;
                         element_flag=NO_JUGED;
                     }
-                    for(row=50;row>30;row--)
+                    for(row=50;row>28;row--)
                     {
                         for(col=col_max;col>col_min;col--)
                         {
@@ -1130,9 +1130,16 @@ void Roundabout_Deal()
             break;
         case GET_IN_ROUND:
             gpio_set(FMQ,1);
+            cross_row_L=CrossRow_L(65);
+            cross_row_R=CrossRow_R(65);
             switch (Roundabout_flag_position)
             {
                 case ROUND_L:
+                    if(cross_row_L<0.7)
+                    {
+                        Roundabout_flag=NO_ROUND;
+                        element_flag=NO_JUGED;
+                    }
                     col_min=Round_L.Col[0]-15;
                     col_max=Round_L.Col[0]+25;
                     if(right_apex.Apex_Col<94) Roundabout_flag=IN_ROUND;
@@ -1170,6 +1177,11 @@ void Roundabout_Deal()
                     }
                     break;
                 case ROUND_R:
+                    if(cross_row_R<0.7)
+                    {
+                        Roundabout_flag=NO_ROUND;
+                        element_flag=NO_JUGED;
+                    }
                     col_min=Round_R.Col[0]-25;
                     col_max=Round_R.Col[0]+15;
                     if(left_apex.Apex_Col>94) Roundabout_flag=IN_ROUND;
@@ -1406,6 +1418,7 @@ void T_Conner_Deal()
                     if(IMG_DATA[row-2][col]==BLACK_IMG && IMG_DATA[row-3][col]==BLACK_IMG)
                     {
                         sum++;
+                        break;
                     }
                 }
             }

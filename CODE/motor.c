@@ -158,7 +158,7 @@ void angle_deal()
             if(middleline[i]!=254)
             {
                 Mid_row=119-mid_row[i];
-                error += weight[Mid_row]*(middleline[i] - COL/2 - 5);//最后的5是补偿。
+                error += weight[Mid_row]*(middleline[i] - COL/2);//最后的5是补偿。
                 weight_sum += weight[i];//此处可以进行算法复杂度优化
             }
         }
