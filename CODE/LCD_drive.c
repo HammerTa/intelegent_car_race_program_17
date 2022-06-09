@@ -122,8 +122,8 @@ void show()
             lcd_showfloat(0,2,(float)error,2,4);
             lcd_showfloat(0,3,(float)L_S,2,5);
             lcd_showfloat(0,4,(float)R_S,2,5);
-            lcd_showfloat(0,5,(float)setspeed_L,2,5);
-            lcd_showfloat(0,6,(float)setspeed_R,2,5);
+            lcd_showfloat(0,5,(float)speed_l,2,5);
+            lcd_showfloat(0,6,(float)speed_r,2,5);
             lcd_showint32(0,7,point_flag,5);
             break;
         case 5:

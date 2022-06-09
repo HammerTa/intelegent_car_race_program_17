@@ -348,8 +348,8 @@ void motor_pid()
 //***************************************************************
 void pwm_out()
 {
-//    left_pwm_out=-2500;
-//    right_pwm_out=0;//如果注释取消 则为开环
+//    left_pwm_out=2500;
+//    right_pwm_out=2500;//如果注释取消 则为开环
     if(pwm0_flag==1)
     {
         left_pwm_out=0;

@@ -119,17 +119,17 @@ float CorssCol=0;
 int weight[120]={
 2,2,2,2,2,2,2,2,2,2,
 2,2,2,2,2,2,2,2,2,2,//21-30
+3,3,3,3,3,3,3,3,3,3,//91-100
 4,4,4,4,4,4,4,4,4,4,//1-10
 8,8,8,8,8,8,8,8,8,8,//11-20
 10,10,10,10,10,10,10,10,10,10,//21-30
 12,12,12,12,12,12,12,12,12,12,//31-40
 14,14,14,14,14,14,14,14,14,14,//41-50
-16,16,16,16,16,16,16,16,16,16,//51-60
+18,18,18,18,18,18,18,18,18,18,//51-60
 10,10,10,10,10,10,10,10,10,10,//61-70
 8,8,8,8,8,8,8,8,8,8,//71-80
 4,4,4,4,4,4,4,4,4,4,//81-90
-3,3,3,3,3,3,3,3,3,3,//91-100
-};//11120
+};//110-120
 
 //--------------------------
 int TrackWild[120]={
@@ -1076,7 +1076,7 @@ void Roundabout_Deal()
                         Roundabout_flag=NO_ROUND;
                         element_flag=NO_JUGED;
                     }
-                    for(row=50;row>28;row--)
+                    for(row=50;row>5;row--)
                     {
                         for(col=col_min;col<col_max;col++)
                         {
@@ -1104,7 +1104,7 @@ void Roundabout_Deal()
                         Roundabout_flag=NO_ROUND;
                         element_flag=NO_JUGED;
                     }
-                    for(row=50;row>28;row--)
+                    for(row=50;row>5;row--)
                     {
                         for(col=col_max;col>col_min;col--)
                         {
@@ -1135,11 +1135,11 @@ void Roundabout_Deal()
             switch (Roundabout_flag_position)
             {
                 case ROUND_L:
-                    if(cross_row_L<0.7)
-                    {
-                        Roundabout_flag=NO_ROUND;
-                        element_flag=NO_JUGED;
-                    }
+//                    if(cross_row_L<0.7)
+//                    {
+//                        Roundabout_flag=NO_ROUND;
+//                        element_flag=NO_JUGED;
+//                    }
                     col_min=Round_L.Col[0]-15;
                     col_max=Round_L.Col[0]+25;
                     if(right_apex.Apex_Col<94) Roundabout_flag=IN_ROUND;
@@ -1177,11 +1177,11 @@ void Roundabout_Deal()
                     }
                     break;
                 case ROUND_R:
-                    if(cross_row_R<0.7)
-                    {
-                        Roundabout_flag=NO_ROUND;
-                        element_flag=NO_JUGED;
-                    }
+//                    if(cross_row_R<0.7)
+//                    {
+//                        Roundabout_flag=NO_ROUND;
+//                        element_flag=NO_JUGED;
+//                    }
                     col_min=Round_R.Col[0]-25;
                     col_max=Round_R.Col[0]+15;
                     if(left_apex.Apex_Col>94) Roundabout_flag=IN_ROUND;
@@ -1947,64 +1947,87 @@ void Raceing_line_G_R()
 void Raceing_line_RoundIn_L()
 {
     int pin,pinn;//, i, j;
-    int row, col,find;
-    int colmin, colmax;
+    int row, col;
     int flag,i;
     pinn=0;
     i=0;
-    if(Round_L.Row[0] == 254)
+//    if(Round_L.Row[0] == 254)
+//    {
+//        return;
+//    }
+//    for(pin=1,row=Round_L.Row[0] - pin;pin<240;pin++)
+//    {
+//        find = 0;
+//        row = Round_L.Row[0] - pin;
+//        if(row<=15)break;
+//        colmin = Round_L.Col[pin - 1] - 10;
+//        colmax = Round_L.Col[pin - 1] + 10;
+//        for(col = colmax;col >= colmin;col--)
+//        {
+//            if(col > COL - 5) col=COL - 5;
+//            if(col > 5)
+//            {
+//                if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col - 1] == BLACK_IMG)
+//                {
+//                    if(IMG_DATA[row][col - 2] == WHITE_IMG && IMG_DATA[row][col - 3] == WHITE_IMG)
+//                    {
+//                        Round_L.Row[pin] = row;
+//                        Round_L.Col[pin] = col - 1;
+//                        find = 1;
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//        if(find == 0)
+//        {
+//            break;
+//        }
+//    }
+    row=left_apex.Apex_Row;
+    i=left_apex.Mark;
+    if(row<30)
     {
-        return;
-    }
-    for(pin=1,row=Round_L.Row[0] - pin;pin<240;pin++)
-    {
-        find = 0;
-        row = Round_L.Row[0] - pin;
-        if(row<=15)break;
-        colmin = Round_L.Col[pin - 1] - 10;
-        colmax = Round_L.Col[pin - 1] + 10;
-        for(col = colmax;col >= colmin;col--)
+        flag=119-pin;
+        for(pin=0;pin<240;pin++)
         {
-            if(col > COL - 5) col=COL - 5;
-            if(col > 5)
+            if(flag>left.Row[0])
             {
-                if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col - 1] == BLACK_IMG)
+                middleline[pin]=left.Row[0]-TrackWild[row]/2;
+                col=middleline[pin];
+                mid_row[pin]=flag;
+                if(row>5&&row<ROW-5)
                 {
-                    if(IMG_DATA[row][col - 2] == WHITE_IMG && IMG_DATA[row][col - 3] == WHITE_IMG)
+                    if(col>5&&col<COL-5)
                     {
-                        Round_L.Row[pin] = row;
-                        Round_L.Col[pin] = col - 1;
-                        find = 1;
-                        break;
+                        IMG_DATA[flag][col]=GREEN_IMG;
                     }
                 }
             }
         }
-        if(find == 0)
-        {
-            break;
-        }
+        return;
     }
-    row=Round_L.Row[0];
     for(pin=0;pin<240;pin++)
     {
         flag=119-pin;
-        if(flag>Round_L.Row[0])
+        if(flag>row)
         {
-            if(right.Col[pinn]!=254)
+            middleline[pin]=left_apex.Apex_Col+TrackWild[row]/2;
+            col=middleline[pin];
+            mid_row[pin]=flag;
+            if(row>5&&row<ROW-5)
             {
-                middleline[pin]=Round_L.Col[0]-TrackWild[row]/2;
-                col=middleline[pin];
-                mid_row[pin]=right.Row[pinn];
-                IMG_DATA[flag][col]=GREEN_IMG;
-                pinn++;
+                if(col>5&&col<COL-5)
+                {
+                    IMG_DATA[flag][col]=GREEN_IMG;
+                }
             }
         }
         else
         {
-            if(Round_L.Row[i]==254) break;
-            row=Round_L.Row[i];
-            col=Round_L.Col[i]-TrackWild[row]/2;
+            if(left.Row[i]==254) break;
+            row=left.Row[i];
+            col=left.Col[i]+TrackWild[row]/2;
             middleline[pin]=col;
             mid_row[pin]=row;
             i++;
@@ -2029,65 +2052,55 @@ void Raceing_line_RoundIn_L()
 void Raceing_line_RoundIn_R()
 {
     int pin,pinn;//, i, j;
-    int row, col,find;
-    int colmin, colmax;
+    int row, col;
     int flag,i;
     i=0;
     pinn=0;
-    if(Round_R.Row[0] == 254)
+    row=right_apex.Apex_Row;
+    i=right_apex.Mark;
+    if(row<30)
     {
-        return;
-    }
-    pin=1;
-    for(row=Round_R.Row[0] - pin;pin<240;pin++)
-    {
-        find = 0;
-        row = Round_R.Row[0] - pin;
-        if(row<=15)break;
-        colmin = Round_R.Col[pin - 1] - 10;
-        colmax = Round_R.Col[pin - 1] + 10;
-        for(col = colmin;col <= colmax;col++)
+        flag=119-pin;
+        for(pin=0;pin<240;pin++)
         {
-            if(col<5) col=5;
-            if(col < COL - 5)
+            if(flag>right.Row[0])
             {
-                if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col + 1] == BLACK_IMG)
+                middleline[pin]=right.Row[0]+TrackWild[row]/2;
+                col=middleline[pin];
+                mid_row[pin]=flag;
+                if(row>5&&row<ROW-5)
                 {
-                    if(IMG_DATA[row][col + 2] == WHITE_IMG && IMG_DATA[row][col + 3] == WHITE_IMG)
+                    if(col>5&&col<COL-5)
                     {
-                        Round_R.Row[pin] = row;
-                        Round_R.Col[pin] = col + 1;
-                        find = 1;
-                        break;
+                        IMG_DATA[flag][col]=GREEN_IMG;
                     }
                 }
             }
         }
-        if(find == 0)
-        {
-            break;
-        }
+        return;
     }
-    row=Round_R.Row[0];
     for(pin=0;pin<240;pin++)
     {
         flag=119-pin;
-        if(flag>Round_R.Row[0])
+        if(flag>row)
         {
-            if(left.Col[pinn]!=254)
+            middleline[pin]=right_apex.Apex_Col-TrackWild[row]/2;
+            col=middleline[pin];
+            mid_row[pin]=flag;
+            IMG_DATA[flag][col]=GREEN_IMG;
+            if(row>5&&row<ROW-5)
             {
-                middleline[pin]=Round_R.Col[0]+TrackWild[row];
-                col=middleline[pin];
-                mid_row[pin]=left.Row[pinn];
-                IMG_DATA[flag][col]=GREEN_IMG;
-                pinn++;
+                if(col>5&&col<COL-5)
+                {
+                    IMG_DATA[flag][col]=GREEN_IMG;
+                }
             }
         }
         else
         {
-            if(Round_R.Row[i]==254) break;
-            row=Round_R.Row[i];
-            col=Round_R.Col[i]+TrackWild[row];
+            if(right.Row[i]==254) break;
+            row=right.Row[i];
+            col=right.Col[i]-TrackWild[row]/2;
             middleline[pin]=col;
             mid_row[pin]=row;
             i++;
@@ -2237,5 +2250,6 @@ void Img_Deal()
     T_Conner_Deal();
     Roundabout_Deal();
     RaceLine();
+//    lcd_displayimage032(IMG_DATA,188,160);
     deal_flag=0;
 }

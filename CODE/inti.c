@@ -36,8 +36,8 @@ void inti_all()
     lcd_showstr(0,3,"Ct init done");
     uart_init(UART_2, 115200, UART2_TX_P10_5, UART2_RX_P10_6);
     lcd_showstr(0,4,"UA init done");
-    icm20602_init_spi();
-    lcd_showstr(0,5,"ICM init done");
+//    icm20602_init_spi();
+//    lcd_showstr(0,5,"ICM init done");
     gpio_init(FMQ,GPO,0,PUSHPULL);
     Read_data();        //读取保存数据
     systick_delay_ms(STM0,1000);
