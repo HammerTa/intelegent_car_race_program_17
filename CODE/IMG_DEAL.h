@@ -87,7 +87,7 @@ extern float CorssCol;
 
 extern unsigned char stop;
 extern unsigned char deal_flag;
-extern unsigned char IMG_DATA[ROW][COL];
+extern unsigned char IMG_DATA[120][188];
 extern unsigned char fork_flag;
 extern unsigned char fork_turn;
 extern unsigned char T_go_flag[2];

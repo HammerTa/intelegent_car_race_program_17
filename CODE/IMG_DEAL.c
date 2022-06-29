@@ -120,26 +120,27 @@ int weight[120]={
 2,2,2,2,2,2,2,2,2,2,
 2,2,2,2,2,2,2,2,2,2,//21-30
 3,3,3,3,3,3,3,3,3,3,//91-100
-4,4,4,4,4,4,4,4,4,4,//1-10
-8,8,8,8,8,8,8,8,8,8,//11-20
+4,4,4,4,4,4,4,4,4,4,//1-10//11-20
+4,4,4,4,4,4,4,4,4,4,
+8,8,8,8,8,8,8,8,8,8,
 10,10,10,10,10,10,10,10,10,10,//21-30
 12,12,12,12,12,12,12,12,12,12,//31-40
 14,14,14,14,14,14,14,14,14,14,//41-50
 18,18,18,18,18,18,18,18,18,18,//51-60
 10,10,10,10,10,10,10,10,10,10,//61-70
 8,8,8,8,8,8,8,8,8,8,//71-80
-4,4,4,4,4,4,4,4,4,4,//81-90
+//81-90
 };//110-120
 
 //--------------------------
 int TrackWild[120]={
-        14,15,17,18,19,21,22,23,25,26,27,29,30,31,33,34,35,37,38,
-        39,41,42,43,45,46,47,49,50,51,53,54,55,57,58,59,61,62,63,
-        65,66,67,69,70,71,73,74,75,77,78,79,81,82,83,85,86,87,89,
-        90,91,93,94,95,97,98,99,101,102,103,105,106,107,109,110,111,113,114,
-        115,117,118,119,121,122,123,125,126,127,129,130,131,133,134,135,137,138,139,
-        141,142,143,145,146,147,149,150,151,153,154,155,157,158,159,161,162,163,165,
-        166,167,169,170,171,173};
+        16,17,18,19,21,22,23,24,26,27,28,29,31,32,33,34,36,37,38,
+        39,41,42,43,44,46,47,48,49,51,52,53,54,56,57,58,59,61,62,
+        63,64,66,67,68,69,71,72,73,74,76,77,78,79,81,82,83,84,86,
+        87,88,89,91,92,93,94,96,97,98,99,101,102,103,104,106,107,108,109,
+        111,112,113,114,116,117,118,119,121,122,123,124,126,127,128,129,131,132,133,
+        134,136,137,138,139,141,142,143,144,146,147,148,149,151,152,153,154,156,157,
+        158,159,161,162,163,164};
 
 
 //***************************************************************
@@ -170,7 +171,7 @@ void Deal_Init()
 //            IMG_DATA[i][j]=mt9v03x_image[i][j];
 //        }
 //    }
-    Threshold=GetOSTU(IMG_DATA);
+    Threshold=zzkLQGetOSTU0200(LQOSTU_MIN02,LQOSTU_MAX02);
     for(i=0;i<ROW;i++)
     {
         for(j=0;j<COL;j++)
@@ -1324,7 +1325,7 @@ void T_Conner_Deal()
     }
     if(T_flag==IN_T)
     {
-        if(Col_cross>0.7)
+        if(Col_cross>0.7 || R_lenth>40 || L_lenth>40)
         {
             T_flag=NO_T;
             if(T_go_flag_pin==1) T_go_flag_pin=0;
@@ -1342,12 +1343,13 @@ void T_Conner_Deal()
         int row_min,row_max,row,col;
         int sum=0;
         row_min=star_row-10;
-        row_max=star_row+8;
+        row_max=star_row+15;
         for(col=5;col<COL-5;col+=5)
         {
             for(row=row_max;row>row_min;row--)
             {
-                if(row<5||row>115) break;
+                if(row<5) break;
+                if(row>115) row=115;
                 if(IMG_DATA[row][col]==WHITE_IMG&&IMG_DATA[row-1][col]==WHITE_IMG)
                 {
                     if(IMG_DATA[row-2][col]==BLACK_IMG && IMG_DATA[row-3][col]==BLACK_IMG)
@@ -1358,7 +1360,7 @@ void T_Conner_Deal()
                 }
             }
         }
-        if(sum>25)
+        if(sum>24)
         {
             element_flag=IN_JUGED;
             T_flag=IN_T;
@@ -1396,18 +1398,18 @@ void Fork_Deal()
         }
     }
     if(B_Top!=1) return;
-    for (i=50;i>30;i--)
+    for (i=50;i>20;i--)
     {
-        int min=COL/2-20,max=COL/2+20;
+        int min=COL/2-40,max=COL/2+40;
         for(j=min;j<max;j++)
         {
-            if(IMG_DATA[i][j]==WHITE_IMG && IMG_DATA[i][j+1]==BLACK_IMG)
+            if(IMG_DATA[i][j]==WHITE_IMG && IMG_DATA[i][j+1]==BLACK_IMG && F_L_flag==0)
             {
                 forck_L.Row[0]=i;
                 forck_L.Col[0]=j+1;
                 F_L_flag=1;
             }
-            if(IMG_DATA[i][j]==BLACK_IMG && IMG_DATA[i][j+1]==WHITE_IMG)
+            if(IMG_DATA[i][j]==BLACK_IMG && IMG_DATA[i][j+1]==WHITE_IMG && F_R_flag==0)
             {
                 forck_R.Row[0]=i;
                 forck_R.Col[0]=j-1;
@@ -1505,7 +1507,7 @@ void Fork_Deal()
         float cross_r,cross_l;
         cross_r=CrossRow_R(forck_R.Row[0]-2);
         cross_l=CrossRow_L(forck_L.Row[0]-2);
-        if(cross_r>0.7 && cross_l>0.7)
+        if(cross_r>0.6 && cross_l>0.6)
         {
             element_flag=IN_JUGED;
             Fork_Flag=IN_FORK;
@@ -1718,6 +1720,11 @@ void Racing_Line_Fork_L()
         }
         if(forck_L.Row[pin+1]==254) break;
      }
+    if(right_apex.Apex_Col<98 && right.Row[0]>80 && left.Col[0]<right.Col[0])
+    {
+        Fork_Flag=NO_FORK;
+        element_flag=NO_JUGED;
+    }
     return;
 }
 
@@ -1765,6 +1772,11 @@ void Racing_Line_Fork_R()
         }
         if(forck_L.Row[pin+1]==254) break;
      }
+    if(left_apex.Apex_Col>90 && left.Row[0]>80 && left.Col[0]<right.Col[0])
+    {
+        Fork_Flag=NO_FORK;
+        element_flag=NO_JUGED;
+    }
     return;
 }
 
@@ -2147,6 +2159,18 @@ void Raceing_line_RoundIn_R()
     return;
 }
 
+void track()
+{
+    lcd_showint32(0,0,right.Row[0],5);
+    lcd_showint32(0,1,right.Col[0],5);
+    lcd_showint32(0,2,left.Row[0],5);
+    lcd_showint32(0,3,left.Col[0],5);
+    lcd_showint32(0,4,right.Row[40],5);
+    lcd_showint32(0,5,right.Col[40],5);
+    lcd_showint32(0,6,left.Row[40],5);
+    lcd_showint32(0,7,left.Col[40],5);
+}
+
 //**************************************************************
 //* 函数名称： Raceing_line_RoundIn_L
 //* 功能说明： 左环岛离开补线
@@ -2206,7 +2230,7 @@ void RaceLine()
     {
         gpio_set(FMQ,0);
         if(T_go_flag[T_go_flag_pin]==0)
-            Raceing_line_T_R();//往后需要添加额外判断，向左或者向右
+            Raceing_line_T_R();//往后需要添加额外判断，向左或者向右(已添加)
         else if(T_go_flag[T_go_flag_pin])
             Raceing_line_T_L();
     }
@@ -2232,9 +2256,9 @@ void RaceLine()
     {
         gpio_set(FMQ,1);
         if(Roundabout_flag_position==ROUND_L)
-            RacingLine_R(2);
+            Raceing_line_G_L();
         else if(Roundabout_flag_position==ROUND_R)
-            RacingLine_L(2);
+            Raceing_line_G_R();
     }
     else if(Roundabout_flag==OUTTING)
     {
@@ -2281,6 +2305,7 @@ void Img_Deal()
     T_Conner_Deal();
     Roundabout_Deal();
     RaceLine();
+    //track();
     //lcd_displayimage032(IMG_DATA,188,160);
     deal_flag=0;
 }
