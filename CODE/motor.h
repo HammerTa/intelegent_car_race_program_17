@@ -10,6 +10,7 @@
 
 extern int speed_l;
 extern int speed_r;
+extern int speed;
 extern int setspeed_L,setspeed_R;
 extern int error;
 extern int error0;
@@ -24,6 +25,7 @@ extern float error_k,temp_cheak;
 extern float Gain_L,Gain_R;//增益
 extern int setspeed;     //别给太大，一开始可以给20
 extern int min_speed;
+extern int setspeed_used;
 extern int left_pwm_out;
 extern int right_pwm_out;
 extern int speed_error_L0,speed_error_L1,speed_error_L2;

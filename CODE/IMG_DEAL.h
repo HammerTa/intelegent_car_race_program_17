@@ -85,6 +85,7 @@ extern int L_lenth,R_lenth;
 extern float L_S,R_S;
 extern float CorssCol;
 
+extern int speed_flag;
 extern unsigned char stop;
 extern unsigned char deal_flag;
 extern unsigned char IMG_DATA[120][188];

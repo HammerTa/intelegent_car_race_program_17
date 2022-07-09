@@ -21,7 +21,7 @@ int angle=0;
 int angle_pwm_out=0;
 
 //速度
-int speed_l=0,speed_r=0;
+int speed_l=0,speed_r=0,speed;
 int direction_r=0;
 int setspeed_L=0,setspeed_R=0;
 int speed_error_L0=0,speed_error_L1=0,speed_error_L2=0;
@@ -33,7 +33,7 @@ int ui_lim=0;
 int error=0;
 int error0=0;
 int lim_pwm=9000;
-float CS_lim=0.4;
+float CS_lim=0.7;
 float P_rate=0.1,D_rate=0;
 int e_lim=100;
 int ERROR[5]={0,0,0,0,0};
@@ -159,7 +159,7 @@ void angle_deal()
             if(middleline[i]!=254)
             {
                 Mid_row=119-mid_row[i];
-                error += weight[Mid_row]*(middleline[i] - COL/2);//最后的5是补偿。
+                error += weight[Mid_row]*(middleline[i] - 94);//最后的5是补偿。
                 weight_sum += weight[i];//此处可以进行算法复杂度优化
             }
         }
@@ -193,10 +193,14 @@ void angle_deal()
     PDChange(error);
     angle=(int)(duoji_kp*error+duoji_kd*(error-error0));
     angle_pwm_out= S3010_Middle-angle;
-    if(stop==1) angle_pwm_out=S3010_Middle;
-    if(angle_pwm_out<S3010_Right+5)
+    if(stop==1)
     {
-        angle_pwm_out=S3010_Right+5;
+        error=0;
+        angle_pwm_out=S3010_Middle;
+    }
+    if(angle_pwm_out<S3010_Right)
+    {
+        angle_pwm_out=S3010_Right;
     }
     if(angle_pwm_out>S3010_Left)
     {
@@ -216,6 +220,7 @@ void Speed_Get()
     speed_l=-gpt12_get(encoder_GPT_l);
     speed_r=gpt12_get(encoder_GPT_r);//编码器损坏，停车不需要差速暂时如此
     //获得读数
+    speed=(speed_l+speed_r)/2;
     if(stop==1) speed_l=speed_r;
     gpt12_clear(encoder_GPT_l);
     gpt12_clear(encoder_GPT_r);
@@ -232,8 +237,9 @@ void Speed_Get()
 void Gear_Box()
 {
     //CorssCol=1;//注释此行可进行速度控制
-    setspeed_used=(int)(setspeed*CorssCol);
+    setspeed_used=(int)(setspeed*(CorssCol+0.1));
     if(setspeed_used<min_speed) setspeed_used=min_speed;
+    if(speed_flag!=254) setspeed_used=speed_flag;
 }
 
 ///***************************************************************
@@ -244,11 +250,11 @@ void Gear_Box()
 //***************************************************************
 void motor_DiffSpeed()
 {
-    int angle_e;
+    int error_u;
     Gear_Box();
-    if(angle<0) angle_e=0-angle;
-    else angle_e=angle;
-    chasu=(chasu_k*angle_e)/(2+chasu_k*angle_e)*setspeed_used;//差速计算公式
+    if(error<0) error_u=0-error;
+    else error_u=error;
+    chasu=(chasu_k*error_u)/(2+chasu_k*error_u)*setspeed_used;//差速计算公式
     if(error==0)
     {
         setspeed_L=setspeed_used;
@@ -344,8 +350,8 @@ void motor_pid()
 //***************************************************************
 void pwm_out()
 {
-//    left_pwm_out=-2500;
-//    right_pwm_out=0;//如果注释取消 则为开环
+//    left_pwm_out=2500;
+//    right_pwm_out=2500;//如果注释取消 则为开环
     if(pwm0_flag==1)
     {
         left_pwm_out=0;
