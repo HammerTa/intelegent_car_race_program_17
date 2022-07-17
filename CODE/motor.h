@@ -10,7 +10,6 @@
 
 extern int speed_l;
 extern int speed_r;
-extern int speed;
 extern int setspeed_L,setspeed_R;
 extern int error;
 extern int error0;
@@ -25,13 +24,13 @@ extern float error_k,temp_cheak;
 extern float Gain_L,Gain_R;//增益
 extern int setspeed;     //别给太大，一开始可以给20
 extern int min_speed;
-extern int setspeed_used;
 extern int left_pwm_out;
 extern int right_pwm_out;
 extern int speed_error_L0,speed_error_L1,speed_error_L2;
 extern int speed_error_R0,speed_error_R1,speed_error_R2;
 extern int left_pwm,right_pwm;
 extern int e_lim;
+extern float distance;
 extern uint8 pwm0_flag;
 
 
@@ -44,5 +43,6 @@ void motor_DiffSpeed(void);
 void motor_pid(void);
 void pwm_out(void);
 void Control(void);
+void Get_Distance(uint8);
 
 #endif /* CODE_MOTOR_H_ */

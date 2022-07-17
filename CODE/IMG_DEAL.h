@@ -51,6 +51,13 @@ typedef enum
     NOROUND,
 }Roundabout_position_enmum;//环岛
 
+typedef enum
+{
+    NO_RAMP,
+    RAMP_READY,
+    IN_RAMP,
+}Ramp_enmum;//环岛
+
 //----------------函数定义区--------------
 void Img_Deal(void);
 void Deal_Init(void);
@@ -85,11 +92,12 @@ extern int L_lenth,R_lenth;
 extern float L_S,R_S;
 extern float CorssCol;
 
-extern int speed_flag;
 extern unsigned char stop;
 extern unsigned char deal_flag;
 extern unsigned char IMG_DATA[120][188];
 extern unsigned char fork_flag;
 extern unsigned char fork_turn;
 extern unsigned char T_go_flag[2];
+extern uint8 distance_flag,fork_times;
+extern int speed_flag;
 #endif 

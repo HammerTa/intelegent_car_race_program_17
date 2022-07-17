@@ -99,11 +99,11 @@ void bluesend (void)
    //蓝牙传数 山外
       bluetooth[0]=(int)speed_l;
       bluetooth[1]=(int)speed_r;
-      bluetooth[2]=(int)(speed);
+      bluetooth[2]=(int)error_k;
       bluetooth[3]=(int)error;
-      bluetooth[4]=(int)setspeed_used;
-      bluetooth[5]=(int)0;
-      bluetooth[6]=(int)0;
-      bluetooth[7]=(int)0;
+      bluetooth[4]=(int)setspeed;
+      bluetooth[5]=(int)setspeed_L;
+      bluetooth[6]=(int)setspeed_R;
+      bluetooth[7]=(int)chasu;
       vcan_sendware(bluetooth,sizeof(bluetooth));
 }

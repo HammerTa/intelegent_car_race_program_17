@@ -4,20 +4,23 @@
 //----------------变量定义区--------------
  
 int  dj_end;
-int speed_flag=254;
 unsigned char stop=1;//停车标志位，置1表示停车
 unsigned char go=0;//直行标志位，1表示直行
 unsigned char deal_flag=0;//处理标志位
 unsigned char fork_flag=0;//三叉标志位
-unsigned char T_go_flag[2]={0};//T弯补线标志位，0右1左
-unsigned char T_go_flag_pin=0;//T弯补线标志位，0右1左
+unsigned char T_go_flag[2]={0,1};//T弯补线标志位，0右1左
+unsigned char T_go_flag_pin=0;//T弯补线标第二，决定标志位，0右1左
 unsigned char fork_turn=1;//1左，2右
+uint8 distance_flag=0;
+uint8 fork_times=0;
 ALL_enum element_flag=NO_JUGED;
 FORK_enum Fork_Flag=NO_FORK;
 T_CONNER_enum T_flag=NO_T;
 Garage_enmum Garage_flag=GET_OUT;
 Roundabout_enmum Roundabout_flag=NO_ROUND;
 Roundabout_position_enmum Roundabout_flag_position=NOROUND;
+Ramp_enmum ramp_flag=NO_RAMP;
+int speed_flag=254;
 //int i = 0,j = 0;
 
 //********************************************
@@ -120,27 +123,27 @@ float CorssCol=0;
 int weight[120]={
 2,2,2,2,2,2,2,2,2,2,
 2,2,2,2,2,2,2,2,2,2,//21-30
-3,3,3,3,3,3,3,3,3,3,//91-100
-4,4,4,4,4,4,4,4,4,4,//1-10//11-20
-4,4,4,4,4,4,4,4,4,4,
-8,8,8,8,8,8,8,8,8,8,
-12,12,12,12,12,12,12,12,12,12,//21-30
-16,16,16,16,16,16,16,16,16,16,//31-40
-20,20,20,20,20,20,20,20,20,20,//41-50
-18,18,18,18,18,18,18,18,18,18,//51-60
+4,4,4,4,4,4,4,4,4,4,//1-10
+8,8,8,8,8,8,8,8,8,8,//11-20
+10,10,10,10,10,10,10,10,10,10,//21-30
+12,12,12,12,12,12,12,12,12,12,//31-40
+14,14,14,14,14,14,14,14,14,14,//41-50
+16,16,16,16,16,16,16,16,16,16,//51-60
 10,10,10,10,10,10,10,10,10,10,//61-70
 8,8,8,8,8,8,8,8,8,8,//71-80
-};//110-120
+4,4,4,4,4,4,4,4,4,4,//81-90
+3,3,3,3,3,3,3,3,3,3,//91-100
+};//11120
 
 //--------------------------
 int TrackWild[120]={
-        10,12,13,14,16,17,18,19,21,22,23,25,26,27,28,30,31,32,34,
-        35,36,37,39,40,41,43,44,45,46,48,49,50,52,53,54,55,57,58,
-        59,61,62,63,64,66,67,68,70,71,72,73,75,76,77,79,80,81,82,
-        84,85,86,88,89,90,91,93,94,95,97,98,99,100,102,103,104,106,107,
-        108,109,111,112,113,115,116,117,118,120,121,122,124,125,126,127,129,130,131,
-        133,134,135,136,138,139,140,142,143,144,145,147,148,149,151,152,153,154,156,
-        157,158,160,161,162,163};
+        4, 5, 7, 8, 9,10,12,13,14,16,17,18,19,21,22,23,24,26,27,
+       28,29,31,32,33,35,36,37,38,40,41,42,43,45,46,47,49,50,51,
+       52,54,55,56,57,59,60,61,63,64,65,66,68,69,70,71,73,74,75,
+       77,78,79,80,82,83,84,85,87,88,89,91,92,93,94,96,97,98,99,
+       101,102,103,105,106,107,108,110,111,112,113,115,116,117,118,120,121,122,124,
+       125,126,127,129,130,131,132,134,135,136,138,139,140,141,143,144,145,146,148,
+       149,150,152,153,154,155};
 
 
 //***************************************************************
@@ -204,10 +207,13 @@ void Deal_Init()
 		    forck_R.Row[pin]=254;
 		    forck_R.Col[pin]=254;
 		}
-		Round_L.Row[pin]=254;
-		Round_L.Col[pin]=254;
-		Round_R.Row[pin]=254;
-		Round_R.Col[pin]=254;
+		if(Roundabout_flag==NO_ROUND)
+		{
+		    Round_L.Row[pin]=254;
+		    Round_L.Col[pin]=254;
+		    Round_R.Row[pin]=254;
+		    Round_R.Col[pin]=254;
+		}
 		T_line.Row[pin]=254;
 		T_line.Col[pin]=254;
         RacingLine.Row[pin]=254;
@@ -220,6 +226,7 @@ void Deal_Init()
         mid_row[pin]=254;
 	}
     gpio_set(FMQ,0);
+    speed_flag=254;
     L_S=0;
     R_S=0;
     left_apex.Mark=254;
@@ -232,7 +239,6 @@ void Deal_Init()
     Vector_l.star[1]=254;
     Vector_l.end[0]=254;
     Vector_l.end[1]=254;
-    speed_flag=254;
     L_lenth=0;
     R_lenth=0;
     fork_flag=0;
@@ -837,7 +843,7 @@ void Racing_Line()
             }
             return;
         }
-        if(left_apex.Apex_Row<right_apex.Apex_Row)
+        if(left_apex.Mark>=right_apex.Mark)
         {
             mark=left_apex.Mark+(115-left.Row[5]);
             row=left.Row[5];
@@ -871,7 +877,7 @@ void Racing_Line()
             }
             return;
         }
-        else if(left_apex.Apex_Row>=right_apex.Apex_Row)
+        else if(left_apex.Mark<right_apex.Mark)
         {
             mark=right_apex.Mark+(115-right.Row[5]);
             row=right.Row[5];
@@ -911,7 +917,7 @@ void Racing_Line()
 //* 函数名称： void protect()
 //* 功能说明： 车如果跑出赛道，停车
 //* 函数返回： 
-//* 备 注：    0表示黑色 255表示白色
+//* 备 注：    0表示黑色 255表示白色，大家自己思考一下怎么写
 //***************************************************************
 void protect()
 {
@@ -921,6 +927,20 @@ void protect()
     if(Garage_flag==GET_IN) row=60;
     else row=115;
     sum=0;
+    if(Garage_flag!=GET_OUT)
+    {
+        if(speed_l<=0 || speed_r<=0)
+        {
+            stop=1;
+            element_flag=NO_JUGED;
+            Fork_Flag=NO_FORK;
+            T_flag=NO_T;
+            Garage_flag=GET_OUT;
+            Roundabout_flag=NO_ROUND;
+            Roundabout_flag_position=NOROUND;
+            return;
+        }
+    }
     for(i=0;i<188;i++)
     {
         if(IMG_DATA[row][i]==BLACK_IMG)
@@ -959,11 +979,12 @@ void Conner_cheack()
 //***************************************************************
 void Roundabout_Deal()
 {
-    int row,col,find;
+    int row,col,i,find;
     int col_min,col_max;
     float cross_row_L,cross_row_R;
     float cross_col,crossrow_juged;
     float round_l_s,round_r_s;
+    float k;
     cross_col=CorssCol;
     find=0;
     switch(Roundabout_flag)
@@ -971,7 +992,7 @@ void Roundabout_Deal()
         case NO_ROUND:
             cross_row_L=CrossRow_L(65);
             cross_row_R=CrossRow_R(65);
-            if(element_flag==IN_JUGED)
+            if(element_flag==IN_JUGED && Roundabout_flag==NO_ROUND)
             {
                 Roundabout_flag_position=NOROUND;
                 Roundabout_flag=NO_ROUND;
@@ -989,7 +1010,7 @@ void Roundabout_Deal()
                 Roundabout_flag=ROUND_READY;
                 element_flag=NO_JUGED;
             }
-            if(right_apex.Apex_Col<94 || left_apex.Apex_Col>94)
+            if(right_apex.Apex_Col<78 || left_apex.Apex_Col>110)
             {
                 Roundabout_flag_position=NOROUND;
                 Roundabout_flag=NO_ROUND;
@@ -999,7 +1020,7 @@ void Roundabout_Deal()
         case ROUND_READY:
             round_l_s=L_S;
             round_r_s=R_S;
-            if(right_apex.Apex_Col<94 || left_apex.Apex_Col>94)
+            if(right_apex.Apex_Col<78 || left_apex.Apex_Col>110)
             {
                 Roundabout_flag_position=NOROUND;
                 Roundabout_flag=NO_ROUND;
@@ -1020,7 +1041,7 @@ void Roundabout_Deal()
             switch (Roundabout_flag_position)
             {
                 case ROUND_L:
-                    if(right_apex.Apex_Col<94 || R_lenth<80 || L_lenth<20)
+                    if(right_apex.Apex_Col<78 || R_lenth<80 || L_lenth<20)
                     {
                         Roundabout_flag_position=NOROUND;
                         Roundabout_flag=NO_ROUND;
@@ -1038,7 +1059,7 @@ void Roundabout_Deal()
                     }
                     break;
                 case ROUND_R:
-                    if(left_apex.Apex_Col>94 || L_lenth<80 || R_lenth<20)
+                    if(left_apex.Apex_Col>110 || L_lenth<80 || R_lenth<20)
                     {
                         Roundabout_flag_position=NOROUND;
                         Roundabout_flag=NO_ROUND;
@@ -1069,12 +1090,12 @@ void Roundabout_Deal()
                 case ROUND_L:
                     col_min=left_apex.Apex_Col-10;
                     col_max=COL/2;
-                    if(left_end_row>80)
+                    if(round_r_s>0.5)
                     {
                         Roundabout_flag=NO_ROUND;
                         element_flag=NO_JUGED;
                     }
-                    for(row=left_end_row;row>5;row--)
+                    for(row=50;row>40;row--)
                     {
                         for(col=col_min;col<col_max;col++)
                         {
@@ -1097,12 +1118,12 @@ void Roundabout_Deal()
                 case ROUND_R:
                     col_min=COL/2;
                     col_max=right_apex.Apex_Col+10;
-                    if(right_end_row>80)
+                    if(round_l_s>0.5)
                     {
                         Roundabout_flag=NO_ROUND;
                         element_flag=NO_JUGED;
                     }
-                    for(row=right_end_row;row>5;row--)
+                    for(row=50;row>40;row--)
                     {
                         for(col=col_max;col>col_min;col--)
                         {
@@ -1111,7 +1132,7 @@ void Roundabout_Deal()
                                 Round_R.Row[0]=row;
                                 Round_R.Col[0]=col-1;
                                 crossrow_juged=CrossRow_R(row);
-                                if(crossrow_juged>0.8 && cross_col>0.75)
+                                if(crossrow_juged>0.75 && cross_col>0.75)
                                 {
                                     find=1;
                                     gpio_set(FMQ,1);
@@ -1128,44 +1149,13 @@ void Roundabout_Deal()
             break;
         case GET_IN_ROUND:
             gpio_set(FMQ,1);
-            speed_flag=min_speed;
-            cross_row_L=CrossRow_L(65);
-            cross_row_R=CrossRow_R(65);
             switch (Roundabout_flag_position)
             {
                 case ROUND_L:
-//                    if(cross_row_L<0.7)
-//                    {
-//                        Roundabout_flag=NO_ROUND;
-//                        element_flag=NO_JUGED;
-//                    }
-                    if(right_apex.Apex_Col<47)
-                    {
-                        if(right.Row[0]>90)
-                        {
-                            Roundabout_flag=NO_ROUND;
-                            element_flag=NO_JUGED;
-                            return;
-                        }
-                        Roundabout_flag=IN_ROUND;
-                    }
+                    if(right_apex.Apex_Col<94) Roundabout_flag=IN_ROUND;
                     break;
                 case ROUND_R:
-//                    if(cross_row_R<0.7)
-//                    {
-//                        Roundabout_flag=NO_ROUND;
-//                        element_flag=NO_JUGED;
-//                    }
-                    if(left_apex.Apex_Col>141)
-                    {
-                        if(left.Row[0]>90)
-                        {
-                            Roundabout_flag=NO_ROUND;
-                            element_flag=NO_JUGED;
-                            return;
-                        }
-                        Roundabout_flag=IN_ROUND;
-                    }
+                    if(left_apex.Apex_Col>94) Roundabout_flag=IN_ROUND;
                     break;
                 case NOROUND:
                     break;
@@ -1175,66 +1165,44 @@ void Roundabout_Deal()
             switch (Roundabout_flag_position)
             {
                 case ROUND_L:
-                    if(right_apex.Apex_Row>40 && cross_col<0.7)
+                    if(right_apex.Apex_Col>94)
                     {
-                        int row_min,row_max,row,col;
-                        int sum=0,star_row;
-                        star_row=(ROW-(int)ROW*cross_col)+5;
-                        row_min=star_row-10;
-                        row_max=star_row+10;
-                        for(col=5;col<COL-5;col+=5)
+                        Roundabout_flag=GET_OUT_ROUND;
+                        element_flag=IN_JUGED;
+                        k=1.0*(right_apex.Apex_Col-right.Col[0])/(right_apex.Apex_Row-right.Row[0]);
+                        for(i=0;i<120;i++)
                         {
-                            for(row=row_max;row>row_min;row--)
+                            if(i<right_apex.Mark)
                             {
-                                if(row<5) break;
-                                if(row>115) row=115;
-                                if(IMG_DATA[row][col]==WHITE_IMG&&IMG_DATA[row-1][col]==WHITE_IMG)
-                                {
-                                    if(IMG_DATA[row-2][col]==BLACK_IMG && IMG_DATA[row-3][col]==BLACK_IMG)
-                                    {
-                                        sum++;
-                                        break;
-                                    }
-                                }
+                                Round_L.Row[i]=right.Row[i];
+                                Round_L.Col[i]=right.Col[i];
                             }
-                        }
-                        if(sum>24)
-                        {
-                            element_flag=IN_JUGED;
-                            Roundabout_flag=GET_OUT_ROUND;
-                            //gpio_set(FMQ,1);
+                            else
+                            {
+                                Round_L.Row[i]=Round_L.Row[i-1]-1;
+                                Round_L.Col[i]=k*(Round_L.Row[i]-right_apex.Apex_Row)+right_apex.Apex_Col;
+                            }
                         }
                     }
                     break;
                 case ROUND_R:
-                    if(left_apex.Apex_Row>40 && cross_col<0.7)
+                    if(left_apex.Apex_Col<94)
                     {
-                        int row_min,row_max,row,col;
-                        int sum=0,star_row;
-                        star_row=(ROW-(int)ROW*cross_col)+5;
-                        row_min=star_row-10;
-                        row_max=star_row+10;
-                        for(col=5;col<COL-5;col+=5)
+                        Roundabout_flag=GET_OUT_ROUND;
+                        element_flag=IN_JUGED;
+                        k=1.0*(left_apex.Apex_Col-left.Col[0])/(left_apex.Apex_Row-left.Row[0]);
+                        for(i=0;i<120;i++)
                         {
-                            for(row=row_max;row>row_min;row--)
+                            if(i<left_apex.Mark)
                             {
-                                if(row<5) break;
-                                if(row>115) row=115;
-                                if(IMG_DATA[row][col]==WHITE_IMG&&IMG_DATA[row-1][col]==WHITE_IMG)
-                                {
-                                    if(IMG_DATA[row-2][col]==BLACK_IMG && IMG_DATA[row-3][col]==BLACK_IMG)
-                                    {
-                                        sum++;
-                                        break;
-                                    }
-                                }
+                                Round_R.Row[i]=left.Row[i];
+                                Round_R.Col[i]=left.Col[i];
                             }
-                        }
-                        if(sum>24)
-                        {
-                            element_flag=IN_JUGED;
-                            Roundabout_flag=GET_OUT_ROUND;
-                            //gpio_set(FMQ,1);
+                            else
+                            {
+                                Round_R.Row[i]=Round_R.Row[i-1]-1;
+                                Round_R.Col[i]=k*(Round_R.Row[i]-left_apex.Apex_Row)+left_apex.Apex_Col;
+                            }
                         }
                     }
                     break;
@@ -1270,7 +1238,7 @@ void Roundabout_Deal()
              {
                  case ROUND_L:
                      cross_row_R=CrossRow_R(75);
-                     if(cross_row_R<0.8 || R_lenth>50)
+                     if(cross_row_R<0.8)
                      {
                          Roundabout_flag=OUT_WAY;
                          element_flag=IN_JUGED;
@@ -1278,7 +1246,7 @@ void Roundabout_Deal()
                      break;
                  case ROUND_R:
                      cross_row_L=CrossRow_L(75);
-                     if(cross_row_L<0.8 || L_lenth>50)
+                     if(cross_row_L<0.8)
                      {
                          Roundabout_flag=OUT_WAY;
                          element_flag=IN_JUGED;
@@ -1360,7 +1328,7 @@ void T_Conner_Deal()
     }
     if(T_flag==IN_T)
     {
-        speed_flag=60;
+
         if(Col_cross>0.7 || R_lenth>40 || L_lenth>40)
         {
             T_flag=NO_T;
@@ -1374,7 +1342,7 @@ void T_Conner_Deal()
             return;
         }
     }
-    if((left_apex.Apex_Row>40 || right_apex.Apex_Row>40) && Col_cross<0.7 && T_flag==NO_T)
+    if((left_apex.Apex_Row>40 || right_apex.Apex_Row>40) && Col_cross<0.75 && T_flag==NO_T)
     {
         int row_min,row_max,row,col;
         int sum=0;
@@ -1428,24 +1396,25 @@ void Fork_Deal()
     {
         if(B_Top!=1)
         {
+            fork_times++;
             Fork_Flag=NO_FORK;
             element_flag=NO_JUGED;
             return;
         }
     }
     if(B_Top!=1) return;
-    for (i=50;i>20;i--)
+    for (i=50;i>30;i--)
     {
-        int min=COL/2-40,max=COL/2+40;
+        int min=COL/2-20,max=COL/2+20;
         for(j=min;j<max;j++)
         {
-            if(IMG_DATA[i][j]==WHITE_IMG && IMG_DATA[i][j+1]==BLACK_IMG && F_L_flag==0)
+            if(IMG_DATA[i][j]==WHITE_IMG && IMG_DATA[i][j+1]==BLACK_IMG)
             {
                 forck_L.Row[0]=i;
                 forck_L.Col[0]=j+1;
                 F_L_flag=1;
             }
-            if(IMG_DATA[i][j]==BLACK_IMG && IMG_DATA[i][j+1]==WHITE_IMG && F_R_flag==0)
+            if(IMG_DATA[i][j]==BLACK_IMG && IMG_DATA[i][j+1]==WHITE_IMG)
             {
                 forck_R.Row[0]=i;
                 forck_R.Col[0]=j-1;
@@ -1559,13 +1528,11 @@ void Fork_Deal()
 //***************************************************************
 void Garage_Deal()
 {
-    if(Garage_flag==FIRST)speed_flag=setspeed;
     if(Garage_flag==GET_OUT)
     {
         element_flag=IN_JUGED;
         if(CorssCol>0.7)
         {
-            T_go_flag_pin=0;
             Garage_flag=NO_GARAGE;
             element_flag=NO_JUGED;
         }
@@ -1608,12 +1575,42 @@ void Garage_Deal()
         {
             T_go_flag_pin=1;
             Garage_flag=FIRST;
-            speed_flag=setspeed;
         }
         else if(BM_count==0 && Garage_flag==FIRST)
             Garage_flag=READY;
         else if(BM_count>=1 && Garage_flag==READY)
             Garage_flag=GET_IN;
+    }
+}
+
+void Ramp_deal()
+{
+    if(element_flag==IN_JUGED && ramp_flag==NO_RAMP) return;
+    if(fork_times==1 && ramp_flag==NO_RAMP)
+    {
+        ramp_flag=RAMP_READY;
+        element_flag=IN_JUGED;
+        distance_flag=1;
+    }
+    if(distance>=80 && ramp_flag==RAMP_READY)
+    {
+        ramp_flag=IN_RAMP;
+        distance_flag=0;
+        distance=0;
+    }
+    if(ramp_flag==IN_RAMP)
+    {
+        gpio_set(FMQ,1);
+        distance_flag=1;
+        e_lim=10;
+        if(distance>=90)
+        {
+            ramp_flag=NO_RAMP;
+            element_flag=NO_JUGED;
+            fork_times++;
+            distance_flag=0;
+            e_lim=200;
+        }
     }
 }
 
@@ -1639,6 +1636,7 @@ void RacingLine_L(int k)
     for(pin=0;pin<240;pin++)
     {
         flag=119-pin;
+        if(left.Row[i]==254) break;
         if(flag>left.Row[0])
         {
             middleline[pin]=left.Col[0]+TrackWild[row]/k;
@@ -1661,7 +1659,7 @@ void RacingLine_L(int k)
                 }
             }
         }
-        if(left.Row[pin+1]==254) break;
+
     }
     return;
 }
@@ -1692,6 +1690,7 @@ void RacingLine_R(int k)
     for(pin=0;pin<mark;pin++)
     {
         flag=119-pin;
+        if(right.Row[i]==254) break;
         if(flag>right.Row[0])
         {
             middleline[pin]=right.Col[0]-TrackWild[row]/k;
@@ -1734,6 +1733,7 @@ void Racing_Line_Fork_L()
     r_flag=0;
     i=0;
     row=forck_L.Row[0];
+    gpio_set(FMQ,1);
     if(right_apex.Apex_Col<94)
     {
         RacingLine_R(2);
@@ -1784,12 +1784,13 @@ void Racing_Line_Fork_R()
     l_flag=0;
     r_flag=0;
     i=0;
+    row=forck_R.Row[0];
+    gpio_set(FMQ,1);
     if(left_apex.Apex_Col>94)
     {
         RacingLine_L(2);
         return;
     }
-    row=forck_R.Row[0];
     for(pin=0;pin<240;pin++)
     {
         flag=119-pin;
@@ -1893,7 +1894,7 @@ void Raceing_line_G_L()
             pin++;
         }
     }
-    else if(left_flag==1)
+    else if(left_flag==1 && Garage_flag!=GET_OUT)
     {
         RacingLine_L(10);
     }
@@ -1920,7 +1921,7 @@ void Raceing_line_G_R()
             pin++;
         }
     }
-    else if(right_flag==1)
+    else if(right_flag==1 && Garage_flag!=GET_OUT)
     {
         RacingLine_R(10);
     }
@@ -1934,136 +1935,64 @@ void Raceing_line_G_R()
 void Raceing_line_RoundIn_L()
 {
     int pin,pinn;//, i, j;
-    int row, col;
+    int row, col,find;
+    int colmin, colmax;
     int flag,i;
-    int find,colmin,colmax;
     pinn=0;
-//    if(Round_L.Row[0] == 254)
-//    {
-//        return;
-//    }
-//    for(pin=1,row=Round_L.Row[0] - pin;pin<240;pin++)
-//    {
-//        find = 0;
-//        row = Round_L.Row[0] - pin;
-//        if(row<=15)break;
-//        colmin = Round_L.Col[pin - 1] - 10;
-//        colmax = Round_L.Col[pin - 1] + 10;
-//        for(col = colmax;col >= colmin;col--)
-//        {
-//            if(col > COL - 5) col=COL - 5;
-//            if(col > 5)
-//            {
-//                if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col - 1] == BLACK_IMG)
-//                {
-//                    if(IMG_DATA[row][col - 2] == WHITE_IMG && IMG_DATA[row][col - 3] == WHITE_IMG)
-//                    {
-//                        Round_L.Row[pin] = row;
-//                        Round_L.Col[pin] = col - 1;
-//                        find = 1;
-//                        break;
-//                    }
-//                }
-//            }
-//        }
-//        if(find == 0)
-//        {
-//            break;
-//        }
-//    }
-    row=left_apex.Apex_Row;
-    i=left_apex.Mark;
-    if(row<40)
+    i=0;
+    if(Round_L.Row[0] == 254)
     {
-        i=0;
-        Round_L.Row[0]=left.Row[0];
-        Round_L.Col[0]=left.Col[0];
-        for(pin=1,row=Round_L.Row[0] - pin;pin<240;pin++)
-        {
-            find = 0;
-            row = Round_L.Row[0] - pin;
-            if(row<=15)break;
-            colmin = Round_L.Col[pin - 1] - 10;
-            colmax = Round_L.Col[pin - 1] + 10;
-            for(col = colmax;col >= colmin;col--)
-            {
-                if(col > COL - 5) col=COL - 5;
-                if(col > 5)
-                {
-                    if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col - 1] == BLACK_IMG)
-                    {
-                        if(IMG_DATA[row][col - 2] == WHITE_IMG && IMG_DATA[row][col - 3] == WHITE_IMG)
-                        {
-                            Round_L.Row[pin] = row;
-                            Round_L.Col[pin] = col - 1;
-                            find = 1;
-                            break;
-                        }
-                    }
-                }
-            }
-            if(find == 0)
-            {
-                break;
-            }
-        }
-        row=Round_L.Row[0];
-        for(pin=0;pin<240;pin++)
-        {
-            flag=119-pin;
-            if(flag>left.Row[0])
-            {
-                middleline[pin]=left.Col[0]-TrackWild[row]/2;
-                col=middleline[pin];
-                mid_row[pin]=flag;
-                if(row>5&&row<ROW-5)
-                {
-                    if(col>5&&col<COL-5)
-                    {
-                        IMG_DATA[flag][col]=GREEN_IMG;
-                    }
-                }
-            }
-            else
-            {
-                if(Round_L.Row[i]==254) break;
-                row=Round_L.Row[i];
-                col=Round_L.Col[i]-TrackWild[row]/2;
-                middleline[pin]=col;
-                mid_row[pin]=row;
-                i++;
-                if(row>5&&row<ROW-5)
-                {
-                    if(col>5&&col<COL-5)
-                    {
-                        IMG_DATA[row][col]=GREEN_IMG;
-                    }
-                }
-            }
-        }
         return;
     }
+    for(pin=1,row=Round_L.Row[0] - pin;pin<240;pin++)
+    {
+        find = 0;
+        row = Round_L.Row[0] - pin;
+        if(row<=15)break;
+        colmin = Round_L.Col[pin - 1] - 10;
+        colmax = Round_L.Col[pin - 1] + 10;
+        for(col = colmax;col >= colmin;col--)
+        {
+            if(col > COL - 5) col=COL - 5;
+            if(col > 5)
+            {
+                if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col - 1] == BLACK_IMG)
+                {
+                    if(IMG_DATA[row][col - 2] == WHITE_IMG && IMG_DATA[row][col - 3] == WHITE_IMG)
+                    {
+                        Round_L.Row[pin] = row;
+                        Round_L.Col[pin] = col - 1;
+                        find = 1;
+                        break;
+                    }
+                }
+            }
+        }
+        if(find == 0)
+        {
+            break;
+        }
+    }
+    row=Round_L.Row[0];
     for(pin=0;pin<240;pin++)
     {
         flag=119-pin;
-        if(flag>row)
+        if(flag>Round_L.Row[0])
         {
-            middleline[pin]=left_apex.Apex_Col+TrackWild[row]/2;
-            col=middleline[pin];
-            mid_row[pin]=flag;
-            if(row>5&&row<ROW-5)
+            if(right.Col[pinn]!=254)
             {
-                if(col>5&&col<COL-5)
-                {
-                    IMG_DATA[flag][col]=GREEN_IMG;
-                }
+                middleline[pin]=Round_L.Col[0]-TrackWild[row]/2;
+                col=middleline[pin];
+                mid_row[pin]=right.Row[pinn];
+                IMG_DATA[flag][col]=GREEN_IMG;
+                pinn++;
             }
         }
         else
         {
-            if(left.Row[i]==254) break;
-            row=left.Row[i];
-            col=left.Col[i]+TrackWild[row]/2;
+            if(Round_L.Row[i]==254) break;
+            row=Round_L.Row[i];
+            col=Round_L.Col[i]-TrackWild[row]/2;
             middleline[pin]=col;
             mid_row[pin]=row;
             i++;
@@ -2088,35 +2017,232 @@ void Raceing_line_RoundIn_L()
 void Raceing_line_RoundIn_R()
 {
     int pin,pinn;//, i, j;
-    int row, col;
+    int row, col,find;
+    int colmin, colmax;
     int flag,i;
-    int find,colmin,colmax;
+    i=0;
     pinn=0;
-    row=right_apex.Apex_Row;
-    i=right_apex.Mark;
-    if(row<40)
+    if(Round_R.Row[0] == 254)
     {
-        i=0;
-        Round_R.Row[0]=right.Row[0];
-        Round_R.Col[0]=right.Col[0];
-        for(pin=1,row=Round_L.Row[0] - pin;pin<240;pin++)
+        return;
+    }
+    pin=1;
+    for(row=Round_R.Row[0] - pin;pin<240;pin++)
+    {
+        find = 0;
+        row = Round_R.Row[0] - pin;
+        if(row<=15)break;
+        colmin = Round_R.Col[pin - 1] - 10;
+        colmax = Round_R.Col[pin - 1] + 10;
+        for(col = colmin;col <= colmax;col++)
+        {
+            if(col<5) col=5;
+            if(col < COL - 5)
+            {
+                if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col + 1] == BLACK_IMG)
+                {
+                    if(IMG_DATA[row][col + 2] == WHITE_IMG && IMG_DATA[row][col + 3] == WHITE_IMG)
+                    {
+                        Round_R.Row[pin] = row;
+                        Round_R.Col[pin] = col + 1;
+                        find = 1;
+                        break;
+                    }
+                }
+            }
+        }
+        if(find == 0)
+        {
+            break;
+        }
+    }
+    row=Round_R.Row[0];
+    for(pin=0;pin<240;pin++)
+    {
+        flag=119-pin;
+        if(flag>Round_R.Row[0])
+        {
+            if(left.Col[pinn]!=254)
+            {
+                middleline[pin]=Round_R.Col[0]+TrackWild[row];
+                col=middleline[pin];
+                mid_row[pin]=left.Row[pinn];
+                IMG_DATA[flag][col]=GREEN_IMG;
+                pinn++;
+            }
+        }
+        else
+        {
+            if(Round_R.Row[i]==254) break;
+            row=Round_R.Row[i];
+            col=Round_R.Col[i]+TrackWild[row];
+            middleline[pin]=col;
+            mid_row[pin]=row;
+            i++;
+            if(row>5&&row<ROW-5)
+            {
+                if(col>5&&col<COL-5)
+                {
+                    IMG_DATA[row][col]=GREEN_IMG;
+                }
+            }
+        }
+    }
+    return;
+}
+
+//**************************************************************
+//* 函数名称： Raceing_line_RoundIn_L
+//* 功能说明： 左环岛离开补线
+//* 函数返回：
+//* 备 注：
+//**************************************************************
+void Raceing_line_RoundOUT_L()
+{
+    int i,pin;
+    if(right_flag==1)
+    {
+        RacingLine_R(2);
+        return;
+    }
+    for(i=120,pin=0;i>60;i--)
+    {
+        middleline[pin]=0;
+        mid_row[pin]=i;
+        pin++;
+    }
+    return;
+}
+
+//**************************************************************
+//* 函数名称： Raceing_line_RoundIn_L
+//* 功能说明： 右环岛离开补线
+//* 函数返回：
+//* 备 注：
+//**************************************************************
+void Raceing_line_RoundOUT_R()
+{
+    int i,pin;
+    if(left_flag==1)
+    {
+        RacingLine_L(2);
+        return;
+    }
+    for(i=120,pin=0;i>60;i--)
+    {
+        middleline[pin]=188;
+        mid_row[pin]=i;
+        pin++;
+    }
+    return;
+}
+
+void Raceing_line_RoundIn_L_Blan_B()
+{
+    int row,col,pin,find,i;
+    int col_min,col_max,flag;
+    int star_row,star_col,star_flag;
+    int max_row,max_col;
+    float k;
+    find=0;max_row=0;max_col=0;
+    i=1;
+    col_min=left_apex.Apex_Col+1;
+    col_max=right_apex.Apex_Col;
+    for(col=col_max;col>col_min;col--)
+    {
+        if(Roundabout_flag==IN_ROUND)
+        {
+            max_row=right.Row[0];
+            max_col=right.Col[0];
+            break;
+        }
+        if(col<5) break;
+        if(left_apex.Apex_Row<right_apex.Apex_Row+20)
+        {
+            max_row=left.Row[0];
+            max_col=left.Col[0];
+            break;
+        }
+        for(row=left_end_row-5;row>5;row--)
+        {
+            if(IMG_DATA[row][col]==WHITE_IMG && IMG_DATA[row-1][col]==WHITE_IMG)
+            {
+                if(IMG_DATA[row-2][col]==BLACK_IMG && IMG_DATA[row-3][col]==BLACK_IMG)
+                {
+                    if(row>max_row)
+                    {
+                        max_row=row;
+                        max_col=col;
+                    }
+                    break;
+                }
+            }
+        }
+    }//终点
+    Round_L.Row[0]=max_row;
+    Round_L.Col[0]=max_col;
+    star_row=115;
+    star_col=180;
+    for(pin=0;pin<240;pin++)
+    {
+        if(Roundabout_flag==IN_ROUND)
+        {
+            star_row=115;
+            star_col=180;
+            break;
+        }
+        if(right.Row[pin]==254) break;
+        if(left_apex.Apex_Row<right_apex.Apex_Row+20)
+        {
+            star_row=115;
+            star_col=180;
+            break;
+        }
+        if(right.Row[pin]<=left_apex.Apex_Row)
+        {
+            star_row=right.Row[pin];
+            star_col=right.Col[pin];
+            star_flag=pin;
+            break;
+        }
+    }//起点
+    IMG_DATA[star_row][star_col]=GREEN_IMG;
+    k=(star_col*1.0-Round_L.Col[0])/(star_row*1.0-Round_L.Row[0]);
+    row=star_row;
+    col=star_col;
+    for(pin=1;pin<240;pin++)
+    {
+        if(star_row-pin>=Round_L.Row[0])
+        {
+            Round_L.Row[pin]=star_row-pin;
+            Round_L.Col[pin]=star_col-(int)pin*k;
+            IMG_DATA[Round_L.Row[pin]][Round_L.Col[pin]]=BLUE_IMG;
+        }
+        else if(Roundabout_flag==IN_ROUND)
+        {
+            if(right.Row[pin]==254) break;
+            Round_L.Row[pin]=right.Row[pin];
+            Round_L.Col[pin]=right.Col[pin];
+        }
+        else
         {
             find = 0;
-            row = Round_L.Row[0] - pin;
+            row = star_row - pin;
             if(row<=15)break;
-            colmin = Round_R.Col[pin - 1] - 10;
-            colmax = Round_R.Col[pin - 1] + 10;
-            for(col = colmin;col <= colmax;col++)
+            col_min = Round_L.Col[pin - 1] - 10;
+            col_max = Round_L.Col[pin - 1] + 10;
+            for(col = col_max;col >= col_min;col--)
             {
-                if(col < 5) col=5;
-                if(col < COL - 5)
+                if(col > COL - 5) col=COL - 5;
+                if(col > 5)
                 {
-                    if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col + 1] == BLACK_IMG)
+                    if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col - 1] == BLACK_IMG)
                     {
-                        if(IMG_DATA[row][col + 2] == WHITE_IMG && IMG_DATA[row][col + 3] == WHITE_IMG)
+                        if(IMG_DATA[row][col - 2] == WHITE_IMG && IMG_DATA[row][col - 3] == WHITE_IMG)
                         {
-                            Round_R.Row[pin] = row;
-                            Round_R.Col[pin] = col + 1;
+                            Round_L.Row[pin] = row;
+                            Round_L.Col[pin] = col - 1;
+                            if(pin>1) IMG_DATA[Round_L.Row[pin]][Round_L.Col[pin]]=BLUE_IMG;
                             find = 1;
                             break;
                         }
@@ -2128,80 +2254,253 @@ void Raceing_line_RoundIn_R()
                 break;
             }
         }
-        row=Round_R.Row[0];
-        for(pin=0;pin<240;pin++)
-        {
-            flag=119-pin;
-            if(flag>Round_R.Row[0])
-            {
-                middleline[pin]=Round_R.Col[0]+TrackWild[row]/2;
-                col=middleline[pin];
-                mid_row[pin]=flag;
-                if(row>5&&row<ROW-5)
-                {
-                    if(col>5&&col<COL-5)
-                    {
-                        IMG_DATA[flag][col]=GREEN_IMG;
-                    }
-                }
-            }
-            else
-            {
-                if(Round_R.Row[i]==254) break;
-                row=Round_R.Row[i];
-                col=Round_R.Col[i]+TrackWild[row]/2;
-                middleline[pin]=col;
-                mid_row[pin]=row;
-                i++;
-                if(row>5&&row<ROW-5)
-                {
-                    if(col>5&&col<COL-5)
-                    {
-                        IMG_DATA[row][col]=GREEN_IMG;
-                    }
-                }
-            }
-        }
-        return;
-    }
-    else
+    }//补线
+    row=Round_L.Row[1];
+    i=1;
+    for(pin=0;pin<240;pin++)
     {
-        for(pin=0;pin<240;pin++)
+        flag=119-pin;
+        if(Round_L.Row[i]==254) break;
+        if(flag>Round_L.Row[1])
         {
-            flag=119-pin;
-            if(flag>row)
+            middleline[pin]=Round_L.Col[1]-TrackWild[row]/2;
+            col=middleline[pin];
+            mid_row[pin]=flag;
+            IMG_DATA[flag][col]=GREEN_IMG;
+        }
+        else
+        {
+            row=Round_L.Row[i];
+            col=Round_L.Col[i]-TrackWild[row]/2;
+            middleline[pin]=col;
+            mid_row[pin]=row;
+            i++;
+            if(row>5&&row<ROW-5)
             {
-                middleline[pin]=right_apex.Apex_Col-TrackWild[row]/2;
-                col=middleline[pin];
-                mid_row[pin]=flag;
-                IMG_DATA[flag][col]=GREEN_IMG;
-                if(row>5&&row<ROW-5)
+                if(col>5&&col<COL-5)
                 {
-                    if(col>5&&col<COL-5)
-                    {
-                        IMG_DATA[flag][col]=GREEN_IMG;
-                    }
-                }
-            }
-            else
-            {
-                if(right.Row[i]==254) break;
-                row=right.Row[i];
-                col=right.Col[i]-TrackWild[row]/2;
-                middleline[pin]=col;
-                mid_row[pin]=row;
-                i++;
-                if(row>5&&row<ROW-5)
-                {
-                    if(col>5&&col<COL-5)
-                    {
-                        IMG_DATA[row][col]=GREEN_IMG;
-                    }
+                    IMG_DATA[row][col]=GREEN_IMG;
                 }
             }
         }
+    }//巡线
+}
+
+void Raceing_line_RoundIn_R_Blan_B()
+{
+    int row,col,pin,find,i;
+    int col_min,col_max,flag;
+    int star_row,star_col,star_flag;
+    int max_row,max_col;
+    float k;
+    find=0;max_row=0;max_col=188;
+    i=1;
+    col_min=left_apex.Apex_Col;
+    col_max=right_apex.Apex_Col-1;
+    for(col=col_min;col<col_max;col++)
+    {
+        if(col>COL-5) break;
+        if(left_apex.Apex_Row+20>right_apex.Apex_Row)
+        {
+            max_row=right.Row[0];
+            max_col=right.Col[0];
+            break;
+        }
+        for(row=right_end_row-5;row>5;row--)
+        {
+            if(IMG_DATA[row][col]==WHITE_IMG && IMG_DATA[row-1][col]==WHITE_IMG)
+            {
+                if(IMG_DATA[row-2][col]==BLACK_IMG && IMG_DATA[row-3][col]==BLACK_IMG)
+                {
+                    if(row>max_row)
+                    {
+                        max_row=row;
+                        max_col=col;
+                    }
+                    break;
+                }
+            }
+        }
+    }//终点
+    Round_R.Row[0]=max_row;
+    Round_R.Col[0]=max_col;
+    star_row=115;
+    star_col=8;
+    for(pin=0;pin<240;pin++)
+    {
+        if(left.Row[pin]==254) break;
+        if(left_apex.Apex_Row+20>right_apex.Apex_Row)
+        {
+            star_row=115;
+            star_col=8;
+            break;
+        }
+        if(left.Row[pin]==right_apex.Apex_Row)
+        {
+            star_row=left.Row[pin];
+            star_col=left.Col[pin];
+            star_flag=pin;
+            break;
+        }
+    }//起点
+    IMG_DATA[star_row][star_col]=GREEN_IMG;
+    k=(star_col*1.0-Round_R.Col[0])/(star_row*1.0-Round_R.Row[0]);
+    row=star_row;
+    col=star_col;
+    for(pin=1;pin<240;pin++)
+    {
+        if(star_row-pin>=Round_R.Row[0])
+        {
+            Round_R.Row[pin]=star_row-pin;
+            Round_R.Col[pin]=star_col-(int)pin*k;
+            IMG_DATA[Round_R.Row[pin]][Round_R.Col[pin]]=BLUE_IMG;
+        }
+        else
+        {
+            find = 0;
+            row = star_row - pin;
+            if(row<=15)break;
+            col_min = Round_R.Col[pin - 1] - 10;
+            col_max = Round_R.Col[pin - 1] + 10;
+            for(col = col_min;col <= col_max;col++)
+            {
+                if(col < 5) col=5;
+                if(col < COL - 5)
+                {
+                    if(IMG_DATA[row][col] == BLACK_IMG && IMG_DATA[row][col + 1] == BLACK_IMG)
+                    {
+                        if(IMG_DATA[row][col + 2] == WHITE_IMG && IMG_DATA[row][col + 3] == WHITE_IMG)
+                        {
+                            Round_R.Row[pin] = row;
+                            Round_R.Col[pin] = col + 1;
+                            if(pin>1) IMG_DATA[Round_R.Row[pin]][Round_R.Col[pin]]=BLUE_IMG;
+                            find = 1;
+                            break;
+                        }
+                    }
+                }
+            }
+            if(find == 0)
+            {
+                break;
+            }
+        }
+    }//补线
+    row=Round_R.Row[1];
+    i=1;
+    for(pin=0;pin<240;pin++)
+    {
+        flag=119-pin;
+        if(Round_R.Row[i]==254) break;
+        if(flag>Round_R.Row[1])
+        {
+            middleline[pin]=Round_R.Col[1]+TrackWild[row]/2;
+            col=middleline[pin];
+            mid_row[pin]=flag;
+            IMG_DATA[flag][col]=GREEN_IMG;
+        }
+        else
+        {
+            row=Round_R.Row[i];
+            col=Round_R.Col[i]+TrackWild[row]/2;
+            middleline[pin]=col;
+            mid_row[pin]=row;
+            i++;
+            if(row>5&&row<ROW-5)
+            {
+                if(col>5&&col<COL-5)
+                {
+                    IMG_DATA[row][col]=GREEN_IMG;
+                }
+            }
+        }
+    }//巡线
+}
+
+void RaceingLine_ramp()
+{
+    int pin;
+    Racing_Line();
+    speed_flag=60;
+    for(pin=0;pin<240;pin++)
+    {
+        if(pin>=60) middleline[pin]=254;
+        break;
     }
-    return;
+}
+
+void RaceLine()
+{
+    if(Fork_Flag==IN_FORK)
+    {
+        if(fork_turn==1)
+            Racing_Line_Fork_L();
+        else if(fork_turn==2)
+            Racing_Line_Fork_R();
+    }
+    else if(T_flag==IN_T)
+    {
+        gpio_set(FMQ,0);
+        if(T_go_flag[T_go_flag_pin]==0)
+            Raceing_line_T_R();//往后需要添加额外判断，向左或者向右
+        else if(T_go_flag[T_go_flag_pin])
+            Raceing_line_T_L();
+    }
+    else if(Garage_flag==GET_OUT) Raceing_line_G_L();
+    else if(Garage_flag==GET_IN) Raceing_line_G_L();
+    else if(Roundabout_flag==GET_IN_ROUND)
+    {
+        gpio_set(FMQ,1);
+        if(Roundabout_flag_position==ROUND_L)
+            Raceing_line_RoundIn_L_Blan_B();
+        else if(Roundabout_flag_position==ROUND_R)
+            Raceing_line_RoundIn_R_Blan_B();
+    }
+    else if(Roundabout_flag==IN_ROUND)
+    {
+        gpio_set(FMQ,1);
+        if(Roundabout_flag_position==ROUND_L)
+        {
+            if(right.Col[0]>48)
+                RacingLine_R(2);
+            else
+                Racing_Line();
+        }
+        else if(Roundabout_flag_position==ROUND_R)
+        {
+            if(left.Col[0]<140)
+                RacingLine_L(2);
+            else
+                Racing_Line();
+        }
+    }
+    else if(Roundabout_flag==GET_OUT_ROUND)
+    {
+        gpio_set(FMQ,1);
+        if(Roundabout_flag_position==ROUND_L)
+            Raceing_line_G_L();
+        else if(Roundabout_flag_position==ROUND_R)
+            Raceing_line_G_R();
+    }
+    else if(Roundabout_flag==OUTTING)
+    {
+        gpio_set(FMQ,1);
+        if(Roundabout_flag_position==ROUND_L)
+            Raceing_line_G_L();
+        else if(Roundabout_flag_position==ROUND_R)
+            Raceing_line_G_R();
+    }
+    else if(Roundabout_flag==OUT_ROUND)
+    {
+        gpio_set(FMQ,1);
+        if(Roundabout_flag_position==ROUND_L)
+            RacingLine_R(2);
+        else if(Roundabout_flag_position==ROUND_R)
+            RacingLine_L(2);
+    }
+    else if(ramp_flag==IN_RAMP)
+        RaceingLine_ramp();
+    else Racing_Line();
 }
 
 void track()
@@ -2214,241 +2513,6 @@ void track()
     lcd_showint32(0,5,right.Col[70],5);
     lcd_showint32(0,6,left.Row[70],5);
     lcd_showint32(0,7,left.Col[70],5);
-}
-
-//**************************************************************
-//* 函数名称： Raceing_line_RoundIn_L
-//* 功能说明： 左环岛离开补线，找右边线
-//* 函数返回：
-//* 备 注：
-//**************************************************************
-void Raceing_line_RoundOUT_L()
-{
-    int row,col,pin,star_pin;
-    int mark,flag,i,mid_end_pin;
-    mid_end_pin=0;//记录结束行位置
-    if(right_apex.Apex_Row<35)
-    {
-        row=right_apex.Apex_Row;
-        middleline[0]=right_apex.Apex_Col-TrackWild[row]/2;
-        mid_row[0]=row;
-        for(pin=1;pin<240;pin++)
-        {
-            middleline[pin]=middleline[pin-1]+2;
-            mid_row[pin]=mid_row[pin-1]+1;
-            if(middleline[pin]<5 || middleline[pin]>COL-5 || mid_row[pin]>ROW-5) break;
-        }
-        return;
-    }
-    else
-    {
-        for(pin=0;pin<240;pin++)
-        {
-            if(right.Row[pin]<right.Row[0]-4)
-            {
-                star_pin=pin;
-                i=pin;
-                break;
-            }
-        }
-        mark=right_apex.Mark+(115-right.Row[star_pin]);
-        row=right.Row[star_pin];
-        i=star_pin;
-        for(pin=0;pin<mark;pin++)
-        {
-            flag=119-pin;
-            if(flag>right.Row[star_pin])
-            {
-                middleline[pin]=right.Col[star_pin]-TrackWild[row]/2;
-                col=middleline[pin];
-                mid_row[pin]=flag;
-                mid_end_pin=pin;
-                IMG_DATA[flag][col]=GREEN_IMG;
-            }
-            else
-            {
-                row=right.Row[i];
-                col=right.Col[i]-TrackWild[row]/2;
-                middleline[pin]=col;
-                mid_row[pin]=row;
-                mid_end_pin=pin;
-                i++;
-                if(row>5&&row<ROW-5)
-                {
-                    if(col>5&&col<COL-5)
-                    {
-                        IMG_DATA[row][col]=GREEN_IMG;
-                    }
-                }
-            }
-        }
-        for(pin=mid_end_pin;pin<239;pin++)
-        {
-            if(middleline[pin]<5 || middleline[pin]>COL-5 || mid_row[pin]<5) break;
-            middleline[pin+1]=middleline[pin]-2;
-            mid_row[pin+1]=mid_row[pin]-1;
-            if(row>5&&row<ROW-5)
-            {
-                if(col>5&&col<COL-5)
-                {
-                    IMG_DATA[row][col]=GREEN_IMG;
-                }
-            }
-        }
-        return;
-    }
-}
-
-//**************************************************************
-//* 函数名称： Raceing_line_RoundIn_L
-//* 功能说明： 右环岛离开补线，找左边线
-//* 函数返回：
-//* 备 注：
-//**************************************************************
-void Raceing_line_RoundOUT_R()
-{
-    int row,col,pin,star_pin;
-    int mark,flag,i,mid_end_pin;
-    mid_end_pin=0;//记录结束行位置
-    if(left_apex.Apex_Row<35)
-    {
-        row=left_apex.Apex_Row;
-        middleline[0]=left_apex.Apex_Col+TrackWild[row]/2;
-        mid_row[0]=row;
-        for(pin=1;pin<240;pin++)
-        {
-            middleline[pin]=middleline[pin-1]-5;
-            mid_row[pin]=mid_row[pin-1]+1;
-            if(middleline[pin]<5 || middleline[pin]>COL-5 || mid_row[pin]>ROW-5) break;
-        }
-        return;
-    }
-    else
-    {
-        for(pin=0;pin<240;pin++)
-        {
-            if(left.Row[pin]<left.Row[0]-4)
-            {
-                star_pin=pin;
-                i=pin;
-                break;
-            }
-        }
-        mark=left_apex.Mark+(115-left.Row[star_pin]);
-        row=left.Row[star_pin];
-        i=star_pin;
-        for(pin=0;pin<mark;pin++)
-        {
-            flag=119-pin;
-            if(flag>left.Row[star_pin])
-            {
-                middleline[pin]=left.Col[star_pin]+TrackWild[row]/2;
-                col=middleline[pin];
-                mid_row[pin]=flag;
-                mid_end_pin=pin;
-                IMG_DATA[flag][col]=GREEN_IMG;
-            }
-            else
-            {
-                row=left.Row[i];
-                col=left.Col[i]+TrackWild[row]/2;
-                middleline[pin]=col;
-                mid_row[pin]=row;
-                mid_end_pin=pin;
-                i++;
-                if(row>5&&row<ROW-5)
-                {
-                    if(col>5&&col<COL-5)
-                    {
-                        IMG_DATA[row][col]=GREEN_IMG;
-                    }
-                }
-            }
-        }
-        for(pin=mid_end_pin;pin<239;pin++)
-        {
-            if(middleline[pin]<5 || middleline[pin]>COL-5 || mid_row[pin]<5) break;
-            middleline[pin+1]=middleline[pin]+5;
-            mid_row[pin+1]=mid_row[pin]-1;
-            if(row>5&&row<ROW-5)
-            {
-                if(col>5&&col<COL-5)
-                {
-                    IMG_DATA[row][col]=GREEN_IMG;
-                }
-            }
-        }
-        return;
-    }
-}
-
-void RaceLine()
-{
-    if(Fork_Flag==IN_FORK)
-    {
-        gpio_set(FMQ,1);
-        if(fork_turn==1)
-            Racing_Line_Fork_L();
-        else if(fork_turn==2)
-            Racing_Line_Fork_R();
-    }
-    else if(T_flag==IN_T)
-    {
-        gpio_set(FMQ,1);
-        if(T_go_flag[T_go_flag_pin]==0)
-            Raceing_line_T_R();//往后需要添加额外判断，向左或者向右(已添加)
-        else if(T_go_flag[T_go_flag_pin]==1)
-            Raceing_line_T_L();
-    }
-    else if(Garage_flag==GET_OUT) Raceing_line_G_L();
-    else if(Garage_flag==GET_IN) Raceing_line_G_L();
-    else if(Roundabout_flag==GET_IN_ROUND)
-    {
-        gpio_set(FMQ,1);
-        if(Roundabout_flag_position==ROUND_L)
-            Raceing_line_RoundIn_L();
-        else if(Roundabout_flag_position==ROUND_R)
-            Raceing_line_RoundIn_R();
-    }
-    else if(Roundabout_flag==IN_ROUND)
-    {
-        gpio_set(FMQ,1);
-        if(Roundabout_flag_position==ROUND_L)
-        {
-            if(right.Col[0]>94) Racing_Line();
-            else RacingLine_R(2);
-        }
-        else if(Roundabout_flag_position==ROUND_R)
-        {
-            if(left.Col[0]<94) Racing_Line();
-            else RacingLine_L(2);
-        }
-    }
-    else if(Roundabout_flag==GET_OUT_ROUND)
-    {
-        gpio_set(FMQ,1);
-        if(Roundabout_flag_position==ROUND_L)
-            Raceing_line_RoundOUT_L();
-        else if(Roundabout_flag_position==ROUND_R)
-            Raceing_line_RoundOUT_R();
-    }
-    else if(Roundabout_flag==OUTTING)
-    {
-        gpio_set(FMQ,1);
-        if(Roundabout_flag_position==ROUND_L)
-            Raceing_line_RoundOUT_L();
-        else if(Roundabout_flag_position==ROUND_R)
-            Raceing_line_RoundOUT_R();
-    }
-    else if(Roundabout_flag==OUT_ROUND)
-    {
-        gpio_set(FMQ,1);
-        if(Roundabout_flag_position==ROUND_L)
-            Racing_Line();
-        else if(Roundabout_flag_position==ROUND_R)
-            Racing_Line();
-    }
-    else Racing_Line();
 }
 
 //***************************************************************
@@ -2474,10 +2538,11 @@ void Img_Deal()
     Right_Apex();
     Garage_Deal();
     Fork_Deal();
+    Ramp_deal();
     T_Conner_Deal();
     Roundabout_Deal();
     RaceLine();
     //track();
-    //lcd_displayimage032(IMG_DATA,188,160);
+//    lcd_displayimage032(IMG_DATA,188,120);
     deal_flag=0;
 }

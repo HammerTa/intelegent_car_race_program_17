@@ -131,33 +131,33 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := NationalRace_Program
+BUILD_ARTIFACT_NAME := ADC_Demo
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 SECONDARY_SIZE += \
-NationalRace_Program.siz \
+ADC_Demo.siz \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: NationalRace_Program.elf secondary-outputs
+main-build: ADC_Demo.elf secondary-outputs
 
 # Tool invocations
-NationalRace_Program.elf: $(OBJS) makefile objects.mk $(OPTIONAL_TOOL_DEPS)
+ADC_Demo.elf: $(OBJS) makefile objects.mk $(OPTIONAL_TOOL_DEPS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: TASKING Linker'
-	cctc -lrt -lfp_fpu -lcs_fpu  -Wl-Oc -Wl-OL -Wl-Ot -Wl-Ox -Wl-Oy -Wl--map-file="NationalRace_Program.map" -Wl-mc -Wl-mf -Wl-mi -Wl-mk -Wl-ml -Wl-mm -Wl-md -Wl-mr -Wl-mu --no-warnings= -Wl--error-limit=42 --exceptions --strict --anachronisms --force-c++ -Ctc26xb   -o"NationalRace_Program.elf" -Wl-o"NationalRace_Program.hex:IHEX" --lsl-core=vtc  --lsl-file=../Lcf_Tasking_Tricore_Tc.lsl $(OBJS)
+	cctc -lrt -lfp_fpu -lcs_fpu  -Wl-Oc -Wl-OL -Wl-Ot -Wl-Ox -Wl-Oy -Wl--map-file="ADC_Demo.map" -Wl-mc -Wl-mf -Wl-mi -Wl-mk -Wl-ml -Wl-mm -Wl-md -Wl-mr -Wl-mu --no-warnings= -Wl--error-limit=42 --exceptions --strict --anachronisms --force-c++ -Ctc26xb   -o"ADC_Demo.elf" -Wl-o"ADC_Demo.hex:IHEX" --lsl-core=vtc  --lsl-file=../Lcf_Tasking_Tricore_Tc.lsl $(OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
-NationalRace_Program.siz: NationalRace_Program.elf makefile objects.mk $(OPTIONAL_TOOL_DEPS)
+ADC_Demo.siz: ADC_Demo.elf makefile objects.mk $(OPTIONAL_TOOL_DEPS)
 	@echo 'Invoking: Print Size'
-	elfsize  "NationalRace_Program.elf"
+	elfsize  "ADC_Demo.elf"
 	@echo 'Finished building: $@'
 	@echo ' '
 

@@ -118,12 +118,12 @@ void show()
             break;
         case 4:
             lcd_showstr(0,0,"LiveData");
-            lcd_showfloat(0,1,(float)speed,4,5);
-            lcd_showfloat(0,2,(float)yaw,4,5);
-            lcd_showfloat(0,3,(float)pit,4,5);
-            lcd_showfloat(0,4,(float)error,4,5);
-            lcd_showfloat(0,5,(float)speed_l,4,5);
-            lcd_showfloat(0,6,(float)speed_r,4,5);
+            lcd_showfloat(0,1,(float)setspeed,2,4);
+            lcd_showfloat(0,2,(float)error,2,4);
+            lcd_showfloat(0,3,(float)distance,4,5);
+            lcd_showfloat(0,4,(float)fork_times,2,5);
+            lcd_showfloat(0,5,(float)setspeed_L,2,5);
+            lcd_showfloat(0,6,(float)setspeed_R,2,5);
             lcd_showint32(0,7,point_flag,5);
             break;
         case 5:

@@ -8,7 +8,7 @@ C_SRCS += \
 ../CODE/LCD_drive.c \
 ../CODE/VCAN_computer.c \
 ../CODE/ZZK_Threshold.c \
-../CODE/icm20602.c \
+../CODE/gyroscope.c \
 ../CODE/inti.c \
 ../CODE/motor.c 
 
@@ -17,7 +17,7 @@ OBJS += \
 ./CODE/LCD_drive.o \
 ./CODE/VCAN_computer.o \
 ./CODE/ZZK_Threshold.o \
-./CODE/icm20602.o \
+./CODE/gyroscope.o \
 ./CODE/inti.o \
 ./CODE/motor.o 
 
@@ -26,7 +26,7 @@ COMPILED_SRCS += \
 ./CODE/LCD_drive.src \
 ./CODE/VCAN_computer.src \
 ./CODE/ZZK_Threshold.src \
-./CODE/icm20602.src \
+./CODE/gyroscope.src \
 ./CODE/inti.src \
 ./CODE/motor.src 
 
@@ -35,7 +35,7 @@ C_DEPS += \
 ./CODE/LCD_drive.d \
 ./CODE/VCAN_computer.d \
 ./CODE/ZZK_Threshold.d \
-./CODE/icm20602.d \
+./CODE/gyroscope.d \
 ./CODE/inti.d \
 ./CODE/motor.d 
 
@@ -44,7 +44,7 @@ C_DEPS += \
 CODE/%.src: ../CODE/%.c CODE/subdir.mk
 	@echo 'Building file: $<'
 	@echo 'Invoking: TASKING C/C++ Compiler'
-	cctc -D__CPU__=tc26xb "-fC:/Users/HammerTank/Desktop/IntelligentCar/NationalRace/NationalRace_Program/Debug/TASKING_C_C___Compiler-Include_paths.opt" --iso=99 --c++14 --language=+volatile --exceptions --anachronisms --fp-model=3 -O0 --tradeoff=4 --compact-max-size=200 -g -Wc-w544 -Wc-w557 -Ctc26xb -o "$@"  "$<"  -cs --dep-file="$(@:.src=.d)" --misrac-version=2012 -N0 -Z0 -Y0 2>&1;
+	cctc -D__CPU__=tc26xb "-fC:/Users/HammerTank/Desktop/IntelligentCar/NationalRace/ADC_Demo/Debug/TASKING_C_C___Compiler-Include_paths.opt" --iso=99 --c++14 --language=+volatile --exceptions --anachronisms --fp-model=3 -O0 --tradeoff=4 --compact-max-size=200 -g -Wc-w544 -Wc-w557 -Ctc26xb -o "$@"  "$<"  -cs --dep-file="$(@:.src=.d)" --misrac-version=2012 -N0 -Z0 -Y0 2>&1;
 	@echo 'Finished building: $<'
 	@echo ' '
 
