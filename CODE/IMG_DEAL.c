@@ -10,7 +10,7 @@ unsigned char deal_flag=0;//处理标志位
 unsigned char fork_flag=0;//三叉标志位
 unsigned char T_go_flag[2]={0,1};//T弯补线标志位，0右1左
 unsigned char T_go_flag_pin=0;//T弯补线标第二，决定标志位，0右1左
-unsigned char fork_turn=1;//1左，2右
+unsigned char fork_turn=2;//1左，2右
 uint8 distance_flag=0;
 uint8 fork_times=0;
 ALL_enum element_flag=NO_JUGED;
@@ -21,6 +21,7 @@ Roundabout_enmum Roundabout_flag=NO_ROUND;
 Roundabout_position_enmum Roundabout_flag_position=NOROUND;
 Ramp_enmum ramp_flag=NO_RAMP;
 int speed_flag=254;
+int round_row_flag;
 //int i = 0,j = 0;
 
 //********************************************
@@ -927,20 +928,20 @@ void protect()
     if(Garage_flag==GET_IN) row=60;
     else row=115;
     sum=0;
-    if(Garage_flag!=GET_OUT)
-    {
-        if(speed_l<=0 || speed_r<=0)
-        {
-            stop=1;
-            element_flag=NO_JUGED;
-            Fork_Flag=NO_FORK;
-            T_flag=NO_T;
-            Garage_flag=GET_OUT;
-            Roundabout_flag=NO_ROUND;
-            Roundabout_flag_position=NOROUND;
-            return;
-        }
-    }
+//    if(Garage_flag!=GET_OUT)
+//    {
+//        if(speed_l<=0 || speed_r<=0)
+//        {
+//            stop=1;
+//            element_flag=NO_JUGED;
+//            Fork_Flag=NO_FORK;
+//            T_flag=NO_T;
+//            Garage_flag=GET_OUT;
+//            Roundabout_flag=NO_ROUND;
+//            Roundabout_flag_position=NOROUND;
+//            return;
+//        }
+//    }
     for(i=0;i<188;i++)
     {
         if(IMG_DATA[row][i]==BLACK_IMG)
@@ -1152,16 +1153,17 @@ void Roundabout_Deal()
             switch (Roundabout_flag_position)
             {
                 case ROUND_L:
-                    if(right_apex.Apex_Col<94) Roundabout_flag=IN_ROUND;
+                    if(right_apex.Apex_Col<47) Roundabout_flag=IN_ROUND;
                     break;
                 case ROUND_R:
-                    if(left_apex.Apex_Col>94) Roundabout_flag=IN_ROUND;
+                    if(left_apex.Apex_Col>141) Roundabout_flag=IN_ROUND;
                     break;
                 case NOROUND:
                     break;
             }
             break;
         case IN_ROUND:
+            round_row_flag=254;
             switch (Roundabout_flag_position)
             {
                 case ROUND_L:
@@ -1342,7 +1344,7 @@ void T_Conner_Deal()
             return;
         }
     }
-    if((left_apex.Apex_Row>40 || right_apex.Apex_Row>40) && Col_cross<0.75 && T_flag==NO_T)
+    if((left_apex.Apex_Row>60 || right_apex.Apex_Row>60) && Col_cross<0.75 && T_flag==NO_T)
     {
         int row_min,row_max,row,col;
         int sum=0;
@@ -1586,7 +1588,7 @@ void Garage_Deal()
 void Ramp_deal()
 {
     if(element_flag==IN_JUGED && ramp_flag==NO_RAMP) return;
-    if(fork_times==1 && ramp_flag==NO_RAMP)
+    if(fork_times==3 && ramp_flag==NO_RAMP)
     {
         ramp_flag=RAMP_READY;
         element_flag=IN_JUGED;
@@ -2324,6 +2326,7 @@ void Raceing_line_RoundIn_R_Blan_B()
     }//终点
     Round_R.Row[0]=max_row;
     Round_R.Col[0]=max_col;
+    round_row_flag=max_row;
     star_row=115;
     star_col=8;
     for(pin=0;pin<240;pin++)
@@ -2461,14 +2464,14 @@ void RaceLine()
         gpio_set(FMQ,1);
         if(Roundabout_flag_position==ROUND_L)
         {
-            if(right.Col[0]>48)
+            if(right.Col[0]<140)
                 RacingLine_R(2);
             else
                 Racing_Line();
         }
         else if(Roundabout_flag_position==ROUND_R)
         {
-            if(left.Col[0]<140)
+            if(left.Col[0]>48)
                 RacingLine_L(2);
             else
                 Racing_Line();
@@ -2543,6 +2546,6 @@ void Img_Deal()
     Roundabout_Deal();
     RaceLine();
     //track();
-//    lcd_displayimage032(IMG_DATA,188,120);
+    //lcd_displayimage032(*IMG_DATA,188,120);
     deal_flag=0;
 }
