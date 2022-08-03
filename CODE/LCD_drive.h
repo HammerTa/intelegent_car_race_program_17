@@ -24,5 +24,6 @@ void changing(void);
 void Data_save(void);
 void Read_data(void);
 void changing_program(void);
+void if_show(void);
 
 #endif /* CODE_LCD_DRIVE_H_ */

@@ -31,6 +31,7 @@ extern int speed_error_R0,speed_error_R1,speed_error_R2;
 extern int left_pwm,right_pwm;
 extern int e_lim;
 extern float distance;
+extern float CS_lim;
 extern uint8 pwm0_flag;
 
 

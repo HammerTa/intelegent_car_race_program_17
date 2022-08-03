@@ -216,7 +216,7 @@ void Speed_Get()
     speed_l=-gpt12_get(encoder_GPT_l);
     speed_r=gpt12_get(encoder_GPT_r);//编码器损坏，停车不需要差速暂时如此
     //获得读数
-    if(stop==1) speed_l=speed_r;
+    //if(stop==1) speed_l=speed_r;
     gpt12_clear(encoder_GPT_l);
     gpt12_clear(encoder_GPT_r);
     //清除读数
@@ -231,7 +231,7 @@ void Speed_Get()
 //***************************************************************
 void Gear_Box()
 {
-    CorssCol=1;//注释此行可进行速度控制
+//    CorssCol+=0.05;//注释此行可进行速度控制
     setspeed_used=(int)(setspeed*CorssCol);
     if(setspeed_used<min_speed) setspeed_used=min_speed;
     if(speed_flag!=254) setspeed_used=speed_flag;
@@ -247,7 +247,7 @@ void motor_DiffSpeed()
 {
     int angle_e;
     Gear_Box();
-    if(angle<0)//这里换成大于可以让车模运行更稳定，我也不知道为什么，很诡异
+    if(angle<0)
     {
         angle_e=0-angle;
     }//差速补偿
@@ -348,9 +348,9 @@ void motor_pid()
 //***************************************************************
 void pwm_out()
 {
-//    left_pwm_out=-2500;
+//    left_pwm_out=0;
 //    right_pwm_out=0;//如果注释取消 则为开环
-    if(pwm0_flag==1)
+    if(pwm0_flag==1 || show_img==1)
     {
         left_pwm_out=0;
         right_pwm_out=0;

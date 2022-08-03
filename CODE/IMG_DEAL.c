@@ -8,11 +8,12 @@ unsigned char stop=1;//停车标志位，置1表示停车
 unsigned char go=0;//直行标志位，1表示直行
 unsigned char deal_flag=0;//处理标志位
 unsigned char fork_flag=0;//三叉标志位
-unsigned char T_go_flag[2]={0,1};//T弯补线标志位，0右1左
+unsigned char T_go_flag[2]={1,0};//T弯补线标志位，0右1左
 unsigned char T_go_flag_pin=0;//T弯补线标第二，决定标志位，0右1左
 unsigned char fork_turn=2;//1左，2右
 uint8 distance_flag=0;
 uint8 fork_times=0;
+uint8 Boost_flag=0;
 ALL_enum element_flag=NO_JUGED;
 FORK_enum Fork_Flag=NO_FORK;
 T_CONNER_enum T_flag=NO_T;
@@ -22,6 +23,7 @@ Roundabout_position_enmum Roundabout_flag_position=NOROUND;
 Ramp_enmum ramp_flag=NO_RAMP;
 int speed_flag=254;
 int round_row_flag;
+int row_lim=20;
 //int i = 0,j = 0;
 
 //********************************************
@@ -138,13 +140,13 @@ int weight[120]={
 
 //--------------------------
 int TrackWild[120]={
-        4, 5, 7, 8, 9,10,12,13,14,16,17,18,19,21,22,23,24,26,27,
-       28,29,31,32,33,35,36,37,38,40,41,42,43,45,46,47,49,50,51,
-       52,54,55,56,57,59,60,61,63,64,65,66,68,69,70,71,73,74,75,
-       77,78,79,80,82,83,84,85,87,88,89,91,92,93,94,96,97,98,99,
-       101,102,103,105,106,107,108,110,111,112,113,115,116,117,118,120,121,122,124,
-       125,126,127,129,130,131,132,134,135,136,138,139,140,141,143,144,145,146,148,
-       149,150,152,153,154,155};
+        2, 3, 5, 6, 7, 8,10,11,12,14,15,16,17,19,20,21,22,24,25,
+        26,27,29,30,31,33,34,35,36,38,39,40,41,43,44,45,47,48,49,
+        50,52,53,54,55,57,58,59,61,62,63,64,66,67,68,69,71,72,73,
+        75,76,77,78,80,81,82,83,85,86,87,89,90,91,92,94,95,96,97,
+        99,100,101,103,104,105,106,108,109,110,111,113,114,115,116,118,119,120,122,
+        123,124,125,127,128,129,130,132,133,134,136,137,138,139,141,142,143,144,146,
+        147,148,150,151,152,153};
 
 
 //***************************************************************
@@ -540,7 +542,7 @@ void left_jump()
 	{
 		find = 0;
 		row = left.Row[0] - pin;
-		if(row<=15)break;
+		if(row<=row_lim)break;
 		colmin = left.Col[pin - 1] - 10;
 		colmax = left.Col[pin - 1] + 10;
 		for(col = colmin;col <= colmax;col++)
@@ -595,7 +597,7 @@ void right_jump()
 	{
 		find = 0;
 		row = right.Row[0] - pin;
-		if(row<=15)break;
+		if(row<=row_lim)break;
 		colmin = right.Col[pin - 1] - 10;
 		colmax = right.Col[pin - 1] + 10;
 		for(col = colmax;col >= colmin;col--)
@@ -925,7 +927,12 @@ void protect()
     unsigned char i;
     unsigned char sum;
     int row;
-    if(Garage_flag==GET_IN) row=60;
+    if(Garage_flag==GET_IN)
+    {
+        distance_flag=1;
+        row=60;
+        if(distance>=45) stop=1;
+    }
     else row=115;
     sum=0;
 //    if(Garage_flag!=GET_OUT)
@@ -1150,6 +1157,7 @@ void Roundabout_Deal()
             break;
         case GET_IN_ROUND:
             gpio_set(FMQ,1);
+            row_lim=25;
             switch (Roundabout_flag_position)
             {
                 case ROUND_L:
@@ -1163,6 +1171,7 @@ void Roundabout_Deal()
             }
             break;
         case IN_ROUND:
+            row_lim=15;
             round_row_flag=254;
             switch (Roundabout_flag_position)
             {
@@ -1330,7 +1339,7 @@ void T_Conner_Deal()
     }
     if(T_flag==IN_T)
     {
-
+        speed_flag=75;
         if(Col_cross>0.7 || R_lenth>40 || L_lenth>40)
         {
             T_flag=NO_T;
@@ -1344,7 +1353,7 @@ void T_Conner_Deal()
             return;
         }
     }
-    if((left_apex.Apex_Row>60 || right_apex.Apex_Row>60) && Col_cross<0.75 && T_flag==NO_T)
+    if((left_apex.Apex_Row>80 || right_apex.Apex_Row>80) && Col_cross<0.75 && T_flag==NO_T)
     {
         int row_min,row_max,row,col;
         int sum=0;
@@ -1405,7 +1414,7 @@ void Fork_Deal()
         }
     }
     if(B_Top!=1) return;
-    for (i=50;i>30;i--)
+    for (i=70;i>40;i--)
     {
         int min=COL/2-20,max=COL/2+20;
         for(j=min;j<max;j++)
@@ -1530,13 +1539,15 @@ void Fork_Deal()
 //***************************************************************
 void Garage_Deal()
 {
+    Boost();
     if(Garage_flag==GET_OUT)
     {
         element_flag=IN_JUGED;
-        if(CorssCol>0.7)
+        if(CorssCol>0.7 || R_lenth>40 || L_lenth>40)
         {
             Garage_flag=NO_GARAGE;
             element_flag=NO_JUGED;
+            fork_times=0;
         }
         return;
     }
@@ -1581,7 +1592,10 @@ void Garage_Deal()
         else if(BM_count==0 && Garage_flag==FIRST)
             Garage_flag=READY;
         else if(BM_count>=1 && Garage_flag==READY)
+        {
             Garage_flag=GET_IN;
+            element_flag=IN_JUGED;
+        }
     }
 }
 
@@ -1594,7 +1608,7 @@ void Ramp_deal()
         element_flag=IN_JUGED;
         distance_flag=1;
     }
-    if(distance>=80 && ramp_flag==RAMP_READY)
+    if(distance>=70 && ramp_flag==RAMP_READY)
     {
         ramp_flag=IN_RAMP;
         distance_flag=0;
@@ -1604,14 +1618,16 @@ void Ramp_deal()
     {
         gpio_set(FMQ,1);
         distance_flag=1;
-        e_lim=10;
+        chasu_k=0;
+        e_lim=20;
         if(distance>=90)
         {
+            e_lim=200;
+            chasu_k=0.01;
             ramp_flag=NO_RAMP;
             element_flag=NO_JUGED;
             fork_times++;
             distance_flag=0;
-            e_lim=200;
         }
     }
 }
@@ -1744,6 +1760,7 @@ void Racing_Line_Fork_L()
     for(pin=0;pin<240;pin++)
     {
         flag=119-pin;
+        if(forck_L.Row[i]==254) break;
         if(flag>forck_L.Row[0])
         {
             middleline[pin]=forck_L.Col[0]-TrackWild[row]/2;
@@ -1766,7 +1783,6 @@ void Racing_Line_Fork_L()
                     }
               }
         }
-        if(forck_L.Row[pin+1]==254) break;
      }
     return;
 }
@@ -1796,6 +1812,7 @@ void Racing_Line_Fork_R()
     for(pin=0;pin<240;pin++)
     {
         flag=119-pin;
+        if(forck_R.Row[i]==254) break;
         if(flag>forck_L.Row[0])
         {
             middleline[pin]=forck_R.Col[0]+TrackWild[row]/2;
@@ -1818,7 +1835,6 @@ void Racing_Line_Fork_R()
                     }
               }
         }
-        if(forck_L.Row[pin+1]==254) break;
      }
     return;
 }
@@ -1884,7 +1900,7 @@ void Raceing_line_T_R()
 void Raceing_line_G_L()
 {
     int i,pin;
-    if(Garage_flag==GET_IN)chasu_k=1;
+//    if(Garage_flag==GET_IN);
     if(left_flag==0 || Garage_flag==GET_IN)
     {
         right_flag=1;
@@ -1896,10 +1912,10 @@ void Raceing_line_G_L()
             pin++;
         }
     }
-    else if(left_flag==1 && Garage_flag!=GET_OUT)
-    {
-        RacingLine_L(10);
-    }
+//    else if(left_flag==1 && Garage_flag!=GET_OUT)
+//    {
+//        RacingLine_L(10);
+//    }
 }
 
 //**************************************************************
@@ -1911,7 +1927,11 @@ void Raceing_line_G_L()
 void Raceing_line_G_R()
 {
     int i,pin;
-    if(Garage_flag==GET_IN)chasu_k=1;
+    if(Garage_flag==GET_IN)
+    {
+        chasu_k=1;
+        speed_flag=60;
+    }
     if(right_flag==0 || Garage_flag==GET_IN)
     {
         right_flag=1;
@@ -1923,10 +1943,10 @@ void Raceing_line_G_R()
             pin++;
         }
     }
-    else if(right_flag==1 && Garage_flag!=GET_OUT)
-    {
-        RacingLine_R(10);
-    }
+//    else if(right_flag==1 && Garage_flag!=GET_OUT)
+//    {
+//        RacingLine_R(10);
+//    }
 }
 //**************************************************************
 //* 函数名称： Raceing_line_RoundIn_L
@@ -2159,7 +2179,7 @@ void Raceing_line_RoundIn_L_Blan_B()
             break;
         }
         if(col<5) break;
-        if(left_apex.Apex_Row<right_apex.Apex_Row+20)
+        if(left_apex.Apex_Row<right_apex.Apex_Row+20 && left.Row[0]<100)
         {
             max_row=left.Row[0];
             max_col=left.Col[0];
@@ -2194,7 +2214,7 @@ void Raceing_line_RoundIn_L_Blan_B()
             break;
         }
         if(right.Row[pin]==254) break;
-        if(left_apex.Apex_Row<right_apex.Apex_Row+20)
+        if(left_apex.Apex_Row<right_apex.Apex_Row+20 && left.Row[0]<100)
         {
             star_row=115;
             star_col=180;
@@ -2302,7 +2322,7 @@ void Raceing_line_RoundIn_R_Blan_B()
     for(col=col_min;col<col_max;col++)
     {
         if(col>COL-5) break;
-        if(left_apex.Apex_Row+20>right_apex.Apex_Row)
+        if(left_apex.Apex_Row+20>right_apex.Apex_Row && right.Row[0]<100)
         {
             max_row=right.Row[0];
             max_col=right.Col[0];
@@ -2332,7 +2352,7 @@ void Raceing_line_RoundIn_R_Blan_B()
     for(pin=0;pin<240;pin++)
     {
         if(left.Row[pin]==254) break;
-        if(left_apex.Apex_Row+20>right_apex.Apex_Row)
+        if(left_apex.Apex_Row+20>right_apex.Apex_Row && right.Row[0]<100)
         {
             star_row=115;
             star_col=8;
@@ -2422,13 +2442,104 @@ void Raceing_line_RoundIn_R_Blan_B()
 
 void RaceingLine_ramp()
 {
-    int pin;
     Racing_Line();
     speed_flag=60;
-    for(pin=0;pin<240;pin++)
+}
+
+void RaceingLine_ramp_Plan_B()
+{
+    int pin,row,col,i;
+    int mark_flag=0;;
+    if(left_flag==0 || right_flag==0)
     {
-        if(pin>=60) middleline[pin]=254;
-        break;
+        Racing_Line();
+        middleline[60]=254;
+        mid_row[60]=254;
+    }
+    else
+    {
+        if(left.Row[0]<right.Row[0])
+        {
+            for(pin=0;pin<240;pin++)
+                if(right.Row[pin]==left.Row[0])
+                    mark_flag=pin;
+            row=119;i=0;
+            for(pin=0;pin<240;pin++)
+            {
+                if(row<=60) break;
+                if(row>left.Row[0])
+                {
+                    middleline[pin]=(left.Col[0]+right.Col[mark_flag])/2;
+                    col=middleline[pin];
+                    mid_row[pin]=row;
+                    row--;
+                    if(row>5&&row<ROW-5)
+                    {
+                        if(col>5&&col<COL-5)
+                        {
+                            IMG_DATA[row][col]=GREEN_IMG;
+                        }
+                    }
+                }
+                else
+                {
+                    if(left.Col[i]==254||right.Col[mark_flag+i]==254) break;
+                    middleline[pin]=(left.Col[i]+right.Col[mark_flag+i])/2;
+                    col=middleline[pin];
+                    mid_row[pin]=row;
+                    row--;
+                    i++;
+                    if(row>5&&row<ROW-5)
+                    {
+                        if(col>5&&col<COL-5)
+                        {
+                            IMG_DATA[row][col]=GREEN_IMG;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            for(pin=0;pin<240;pin++)
+                if(left.Row[pin]==right.Row[0])
+                    mark_flag=pin;
+            row=119;i=0;
+            for(pin=0;pin<240;pin++)
+            {
+                if(row<=60) break;
+                if(row>right.Row[0])
+                {
+                    middleline[pin]=(right.Col[0]+left.Col[mark_flag])/2;
+                    col=middleline[pin];
+                    mid_row[pin]=row;
+                    row--;
+                    if(row>5&&row<ROW-5)
+                    {
+                        if(col>5&&col<COL-5)
+                        {
+                            IMG_DATA[row][col]=GREEN_IMG;
+                        }
+                    }
+                }
+                else
+                {
+                    if(right.Col[i]==254||left.Col[mark_flag+i]==254) break;
+                    middleline[pin]=(right.Col[i]+left.Col[mark_flag+i])/2;
+                    col=middleline[pin];
+                    mid_row[pin]=row;
+                    row--;
+                    i++;
+                    if(row>5&&row<ROW-5)
+                    {
+                        if(col>5&&col<COL-5)
+                        {
+                            IMG_DATA[row][col]=GREEN_IMG;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -2445,12 +2556,15 @@ void RaceLine()
     {
         gpio_set(FMQ,0);
         if(T_go_flag[T_go_flag_pin]==0)
+        {
+            fork_times=2;
             Raceing_line_T_R();//往后需要添加额外判断，向左或者向右
+        }
         else if(T_go_flag[T_go_flag_pin])
             Raceing_line_T_L();
     }
-    else if(Garage_flag==GET_OUT) Raceing_line_G_L();
-    else if(Garage_flag==GET_IN) Raceing_line_G_L();
+    else if(Garage_flag==GET_OUT) Raceing_line_G_R();
+    else if(Garage_flag==GET_IN) Raceing_line_G_R();
     else if(Roundabout_flag==GET_IN_ROUND)
     {
         gpio_set(FMQ,1);
@@ -2501,9 +2615,26 @@ void RaceLine()
         else if(Roundabout_flag_position==ROUND_R)
             RacingLine_L(2);
     }
-    else if(ramp_flag==IN_RAMP)
-        RaceingLine_ramp();
+    else if(ramp_flag==IN_RAMP) RaceingLine_ramp_Plan_B();
     else Racing_Line();
+}
+
+void Boost()
+{
+    if(Garage_flag==FIRST && Boost_flag==0)
+    {
+        Boost_flag=1;
+        distance_flag=1;
+    }
+    if(Boost_flag)
+    {
+        speed_flag=120;
+        if(distance>=100)
+        {
+            Boost_flag=0;
+            distance_flag=0;
+        }
+    }
 }
 
 void track()
@@ -2545,7 +2676,7 @@ void Img_Deal()
     T_Conner_Deal();
     Roundabout_Deal();
     RaceLine();
-    //track();
-    //lcd_displayimage032(*IMG_DATA,188,120);
+   // track();
+    if(show_img) lcd_displayimage032(*IMG_DATA,188,120);
     deal_flag=0;
 }

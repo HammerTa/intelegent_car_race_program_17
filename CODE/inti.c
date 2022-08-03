@@ -44,6 +44,7 @@ void inti_all()
     lcd_showstr(0,6,"Ready to go");
     systick_delay_ms(STM0,1000);
     lcd_clear(WHITE);
+    if_show();
 }
 
 void PIT_init()

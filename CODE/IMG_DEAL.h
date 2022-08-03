@@ -65,6 +65,7 @@ void Data_collect_display(void);
 //void Img_Send_To_Top( uint8 Image[ROW][COL]); 
 void LeftStartFind(void);
 void RightStartFind(void);
+void Boost(void);
 float Cross_col(void);
 extern int v;
    

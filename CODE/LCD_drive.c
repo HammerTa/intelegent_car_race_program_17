@@ -122,8 +122,8 @@ void show()
             lcd_showfloat(0,2,(float)error,2,4);
             lcd_showfloat(0,3,(float)distance,4,5);
             lcd_showfloat(0,4,(float)fork_times,2,5);
-            lcd_showfloat(0,5,(float)setspeed_L,2,5);
-            lcd_showfloat(0,6,(float)setspeed_R,2,5);
+            lcd_showfloat(0,5,(float)speed_l,2,5);
+            lcd_showfloat(0,6,(float)speed_r,2,5);
             lcd_showint32(0,7,point_flag,5);
             break;
         case 5:
@@ -575,11 +575,34 @@ void changing_program()//代码调参
     left_pwm=0;
     right_pwm=0;
 }
+
 void key_control()
 {
     //key_scan();
     key_scan_row();
 //    long_prass_1(key_value);
     data_change(key_value);
-    show();
+    if(!show_img) show();
+}
+
+void if_show()
+{
+    lcd_showstr(0,0,"Show_IMG?");
+    while(1)
+    {
+        key_scan_row();
+        if(key_value==1)
+        {
+            lcd_clear(WHITE);
+            break;
+        }
+        else if(key_value==9)
+        {
+            stop=0;
+            pwm0_flag=1;
+            show_img=1;
+            lcd_clear(WHITE);
+            break;
+        }
+    }
 }
